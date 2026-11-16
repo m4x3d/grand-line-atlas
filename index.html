@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grand Line Atlas</title>
+<style>
+  :root { --ink: #0b1830; --gold: #f2c230; --paper: #f5f0e0; --line: #2b4a7a; --old: #e9cf9a; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); color: var(--paper);
+    font: 13px/1.45 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; image-rendering: pixelated; touch-action: none; cursor: grab; }
+  .box { position: fixed; background: #0b1830e6; border: 2px solid var(--line); box-shadow: 4px 4px 0 #0008; }
+  header { top: 12px; left: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; }
+  h1 { margin: 0; font-size: 14px; letter-spacing: 2px; color: var(--gold); }
+  input[type=search] { width: 230px; padding: 4px 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); }
+  footer { left: 12px; right: 12px; bottom: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; }
+  footer button, .chip { font: inherit; color: var(--paper); background: #132a4f; border: 2px solid var(--line); padding: 2px 8px; cursor: pointer; }
+  footer button:hover, .chip:hover, .who:hover { border-color: var(--gold); color: var(--gold); }
+  #track { flex: 1; min-width: 80px; display: flex; flex-direction: column; gap: 3px; }
+  #when { width: 100%; margin: 0; accent-color: var(--gold); }
+  #eras { display: flex; gap: 3px; padding: 0 6px; }
+  #marks { position: relative; height: 8px; margin: 0 8px; }
+  #marks button { position: absolute; top: 0; width: 6px; height: 8px; margin-left: -3px; padding: 0; border: 0; background: var(--gold); }
+  #marks button:hover { background: #fff; }
+  .ev { margin-bottom: 6px; } .ev .chip { margin-right: 8px; }
+  #eras button { min-width: 0; padding: 0 6px; overflow: hidden; white-space: nowrap; font-size: 10px; letter-spacing: 2px; text-align: left; }
+  #era-past, .chip.old, .tag { color: var(--old); background: #4a3a22; border-color: #8a6f3f; }
+  .tag { padding: 0 5px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; border: 1px solid; }
+  canvas { transition: filter .6s; }
+  .past canvas { filter: sepia(.6) saturate(.85) contrast(1.05); }
+  .past .box { border-color: #8a6f3f; }
+  .past h2, .past #arc b { color: var(--old); }
+  .past #when { accent-color: var(--old); }
+  #arc { min-width: 15em; }
+  #arc b { color: var(--gold); }
+  aside { top: 12px; right: 12px; bottom: 76px; width: 310px; padding: 12px; overflow-y: auto; }
+  aside h2 { margin: 0 0 2px; font-size: 16px; color: var(--gold); }
+  aside h3 { margin: 14px 0 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9fb4d6; }
+  aside p { margin: 6px 0; }
+  .dim { color: #9fb4d6; }
+  .note { padding-left: 8px; border-left: 3px solid var(--gold); }
+  .note.off { border-color: #d8322c; }
+  .chip { display: inline-block; margin: 0 4px 4px 0; font-size: 12px; }
+  .chip.on { border-color: var(--gold); color: var(--gold); }
+  .who { display: flex; align-items: center; gap: 8px; width: 100%; padding: 2px 4px; font: inherit; text-align: left;
+    color: var(--paper); background: none; border: 2px solid transparent; cursor: pointer; }
+  .spr { flex: none; width: 32px; height: 42px; background: var(--atlas); image-rendering: pixelated; }
+  .spr.big { zoom: 3; margin: 0 auto 4px; display: block; }
+  .who .dim { margin-left: auto; font-size: 11px; text-align: right; }
+  #nogpu { inset: 0; display: grid; place-content: center; text-align: center; padding: 24px; }
+  @media (max-width: 760px) {
+    aside { top: auto; left: 12px; width: auto; bottom: 76px; max-height: 38vh; }
+    h1 { display: none; } #arc { min-width: 0; }
+  }
+</style>
+
+<canvas></canvas>
+<header class="box">
+  <h1>GRAND LINE ATLAS</h1>
+  <input type="search" id="find" list="names" placeholder="Find a character or island" aria-label="Find a character or island">
+  <datalist id="names"></datalist>
+</header>
+<aside class="box" id="panel" aria-live="polite"></aside>
+<footer class="box">
+  <button id="prev" aria-label="Previous arc">&lt;</button>
+  <button id="next" aria-label="Next arc">&gt;</button>
+  <span id="arc"></span>
+  <div id="track">
+    <div id="eras"><button id="era-past">THE PAST</button><button id="era-now">THE VOYAGE</button></div>
+    <div id="marks"></div>
+    <input type="range" id="when" min="0" value="0" aria-label="Story arc">
+  </div>
+  <button id="world">World</button>
+</footer>
+<div class="box" id="nogpu" hidden>
+  <h1>No GPU rendering available</h1>
+  <p>This atlas is drawn entirely on the GPU and needs WebGPU or WebGL2. Try a current Chrome, Edge, Safari or Firefox.</p>
+</div>
+<script type="module" src="main.js"></script>
