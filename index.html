@@ -18,6 +18,7 @@
   #clear { margin-left: -32px; width: 22px; font: inherit; color: var(--paper); background: none; border: 0; cursor: pointer; }
   #clear:hover { color: var(--gold); }
   #find:placeholder-shown + #clear { visibility: hidden; }
+  #find:placeholder-shown { padding-right: 6px; }   /* no ✕ yet, so the placeholder gets the room */
   .wiki { color: #9fb4d6; font-size: 11px; } .wiki:hover { color: var(--gold); }
   footer { left: 12px; right: 12px; bottom: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; }
   footer button, .chip { font: inherit; color: var(--paper); background: #132a4f; border: 2px solid var(--line); padding: 2px 8px; cursor: pointer; }
@@ -64,6 +65,7 @@
     header input[type=search] { flex: 1; min-width: 0; width: auto; }
     h1 { font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
     aside.min { bottom: 124px; }
+    #fold { width: 32px; height: 32px; }   /* a finger-sized target */
     footer { flex-wrap: wrap; }   /* timeline on its own row under the buttons and the arc name */
     #arc { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #track { order: 1; flex-basis: 100%; }
@@ -74,7 +76,7 @@
 <canvas></canvas>
 <header class="box">
   <h1>GRAND LINE ATLAS</h1>
-  <input type="search" id="find" list="names" placeholder="Find a character or island" aria-label="Find a character or island">
+  <input type="search" id="find" list="names" placeholder="Find character or island" aria-label="Find a character or island">
   <button id="clear" aria-label="Clear search">✕</button>
   <datalist id="names"></datalist>
 </header>
