@@ -210,11 +210,30 @@ function frame(ms) {
   requestAnimationFrame(frame)
 }
 
-// ponytail: mouse, pen and one-finger drag only. Pinch zoom needs two-pointer tracking, add it if phones matter.
 const toWorld = ([mx, my]) => [cam.x + (mx - W / 2) / cam.z / 2, cam.y + (my - H / 2) / cam.z / 2]
-cv.onpointerdown = e => { drag = { x: e.clientX, y: e.clientY, moved: 0 }; cv.setPointerCapture(e.pointerId) }
+// zoom by f, keeping the world point under screen point `from` under screen point `to`
+function zoomAt(from, to, f) {
+  const [wx, wy] = toWorld(from)
+  tgt.z = clamp(tgt.z * f, W / 2 / LAP, 9)
+  tgt.x = wx - (to[0] - W / 2) / tgt.z / 2; tgt.y = wy - (to[1] - H / 2) / tgt.z / 2
+}
+const touches = new Map()   // pointers currently down, for pinch zoom
+const pinch = () => {
+  const [[ax, ay], [bx, by]] = touches.values()
+  return { d: Math.hypot(ax - bx, ay - by), m: [(ax + bx) / 2 / S, (ay + by) / 2 / S] }
+}
+cv.onpointerdown = e => {
+  touches.set(e.pointerId, [e.clientX, e.clientY])
+  drag = { x: e.clientX, y: e.clientY, moved: touches.size > 1 ? 99 : 0 }   // a pinch is never a tap
+  cv.setPointerCapture(e.pointerId)
+}
 cv.onpointermove = e => {
   mouse = [e.clientX / S, e.clientY / S]
+  if (touches.size === 2 && touches.has(e.pointerId)) {
+    const a = pinch(); touches.set(e.pointerId, [e.clientX, e.clientY]); const b = pinch()
+    zoomAt(a.m, b.m, b.d / a.d); Object.assign(cam, tgt)   // follow the fingers without easing
+    return
+  }
   if (drag) {
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y
     drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = e.clientX; drag.y = e.clientY
@@ -223,9 +242,15 @@ cv.onpointermove = e => {
   hover = pick()
   cv.style.cursor = hover ? 'pointer' : drag ? 'grabbing' : 'grab'
 }
-cv.onpointerup = e => {
+cv.onpointerup = cv.onpointercancel = e => {
+  touches.delete(e.pointerId)
   mouse = [e.clientX / S, e.clientY / S]
-  if (drag && drag.moved < 5) {
+  if (touches.size) {   // one finger of a pinch lifted: keep dragging with the other
+    const [x, y] = touches.values().next().value
+    drag = { x, y, moved: 99 }
+    return
+  }
+  if (e.type === 'pointerup' && drag && drag.moved < 5) {
     const p = pick(), [wx, wy] = toWorld(mouse)
     const s = ISLANDS.find(s => Math.hypot(lap(s.x - wx), s.y - wy) < s.ext * 1.1)
     if (p) showChar(p.c)
@@ -235,9 +260,8 @@ cv.onpointerup = e => {
 }
 cv.addEventListener('wheel', e => {
   e.preventDefault()
-  const m = [e.clientX / S, e.clientY / S], [wx, wy] = toWorld(m)
-  tgt.z = clamp(tgt.z * Math.exp(-e.deltaY * .0015), W / 2 / LAP, 9)
-  tgt.x = wx - (m[0] - W / 2) / tgt.z / 2; tgt.y = wy - (m[1] - H / 2) / tgt.z / 2   // zoom towards the cursor
+  const m = [e.clientX / S, e.clientY / S]
+  zoomAt(m, m, Math.exp(-e.deltaY * .0015))   // zoom towards the cursor
 }, { passive: false })
 
 panel.onclick = $('#marks').onclick = e => {
