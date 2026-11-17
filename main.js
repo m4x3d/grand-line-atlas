@@ -16,6 +16,9 @@ const SEAS = [['East Blue', 640, 60], ['South Blue', 640, 1100], ['North Blue', 
   ['Paradise', 180, 478], ['New World', 1420, 470], ['Calm Belt', 300, 430], ['Calm Belt', 300, 770], ['Red Line', 1240, 280], ['Red Line', 40, 900]]
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 const SUNNY = CODES.indexOf('g')   // the arc where the Sunny replaces the Merry
+// Legs the crew did not sail on their own ship: to Enies Lobby they rode the sea train Rocketman (ch. 366) while Iceburg's
+// repaired Merry followed alone, and the way back the Merry broke apart and Galley-La took them home (ch. 430).
+const NO_SAIL = ['f', 'g'].map(c => CODES.indexOf(c))
 // What a character is up to while the story is not looking, guessed from their affiliation (cast files can override it).
 const AWAY = [
   [/Whitebeard Pirates|Red Hair|Big Mom|Beasts Pirates|Donquixote Pirates|Germa|Mink|Scabbards|Kozuki|Wano|Elbaph/, 'somewhere in the New World'],
@@ -253,8 +256,8 @@ function setArc(i, fly = true) {
   place()
   showArc()
   // one leg further and the ship is aboard, from where it waited to where it is now: it sails while the camera shows the
-  // whole leg, then lands. Not after a leg Luffy went alone (Rusukaina to Sabaody: the Sunny never left Sabaody).
-  voyage = sailedLegs === legs + 1 && was?.isl === STOPS[legs] && ship?.isl === STOPS[sailedLegs] ? { leg: legs, t0: performance.now(), ms: 1200 + LEN[legs] * 5, free: !fly } : null
+  // whole leg, then lands. Not after a leg Luffy went alone (Rusukaina to Sabaody: the Sunny never left Sabaody) or one in NO_SAIL.
+  voyage = sailedLegs === legs + 1 && !NO_SAIL.includes(arc) && was?.isl === STOPS[legs] && ship?.isl === STOPS[sailedLegs] ? { leg: legs, t0: performance.now(), ms: 1200 + LEN[legs] * 5, free: !fly } : null
   if (voyage) {
     const xs = LEGS[legs].map(p => p[0]), ys = LEGS[legs].map(p => p[1]), mid = v => (Math.max(...v) + Math.min(...v)) / 2
     const span = v => Math.max(...v) - Math.min(...v) + 80, free = innerWidth > 760 ? innerWidth - 330 : innerWidth

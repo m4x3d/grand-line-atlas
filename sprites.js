@@ -123,7 +123,9 @@ export function makeAtlas(cast) {
   ;[ox, oy] = SHIP.merry; ox++; ship(R, false)   // one pixel in, so the outline stays inside the cell
   ;[ox, oy] = SHIP.sunny; ox++; ship(R, true)
   outline(g, 512)
-  g.save(); g.scale(-1, 1); g.drawImage(cv, 0, 448, 128, 64, -256, 448, 128, 64); g.restore()   // mirrored ships, bow east
+  g.save(); g.scale(-1, 1)   // mirrored ships, bow east, each one 128 px to the right of the original
+  for (const [x] of Object.values(SHIP)) g.drawImage(cv, x, 448, 64, 64, -(x + 192), 448, 64, 64)
+  g.restore()
   BITS.forEach((b, i) => {
     ox = i * 4; oy = 432
     R('#0b1830d0', 0, 0, 4, 7)
