@@ -95,8 +95,9 @@ function status(c) {
 }
 
 function flyTo(x, y, z) {
-  const pad = innerWidth > 760 ? 165 / S / z / 2 : 0   // keep the target clear of the side panel
-  Object.assign(tgt, { x: near(x) + pad, y, z })
+  // keep the target clear of the panel: beside it on desktop, above it on mobile where it sits at the bottom
+  const wide = innerWidth > 760, below = wide ? 0 : (innerHeight - panel.getBoundingClientRect().top) / 2
+  Object.assign(tgt, { x: near(x) + (wide ? 165 / S / z / 2 : 0), y: y + below / S / z / 2, z })
 }
 // Gold ticks above the slider: every stop on the timeline that involves the selected island or character
 let selIsl = null
