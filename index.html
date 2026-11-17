@@ -55,8 +55,11 @@
   .who .dim { margin-left: auto; font-size: 11px; text-align: right; }
   #nogpu { inset: 0; display: grid; place-content: center; text-align: center; padding: 24px; }
   @media (max-width: 760px) {
-    aside { top: auto; left: 12px; width: auto; bottom: 76px; max-height: 38vh; }
-    h1 { display: none; } #arc { min-width: 0; }
+    aside { top: auto; left: 12px; width: auto; bottom: 124px; max-height: 38vh; }
+    h1 { display: none; }
+    footer { flex-wrap: wrap; }   /* timeline on its own row under the buttons and the arc name */
+    #arc { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #track { order: 1; flex-basis: 100%; }
   }
 </style>
 
