@@ -45,9 +45,8 @@ const near = x => cam.x + lap(x - cam.x)         // the copy of a world x that i
 function place() {
   const groups = new Map()
   for (const c of CAST) {
-    const { prev, shown } = locate(c, arc)
+    const { isl, shown } = locate(c, arc)
     if (!shown) continue
-    const isl = where(c, prev)
     if (!groups.has(isl)) groups.set(isl, [])
     groups.get(isl).push(c)
   }
@@ -89,12 +88,13 @@ const back = () => `<h3>Now</h3><button class="chip">Back to ${ARCS[arc].name}</
 
 // Why a character is or is not on the map right now, and the nearest chapters where they can be found
 function status(c) {
-  const { prev, next, dead, shown } = locate(c, arc)
+  const { prev, next, dead, home, isl, shown } = locate(c, arc)
   const spot = a => `${chip(ARCS[a])} on ${where(c, a).name}`
   const away = c.join > arc ? 'has not joined the Straw Hats yet' : c.away || AWAY.find(([re]) => re.test(c.crew.split(', later')[0]))?.[1]
   const why = dead ? `Dies during ${ARCS[c.dies].name}.`
     : shown && prev === arc ? `On the map now, on ${where(c, arc).name}.`
-    : shown ? `Still where the story last saw them, on ${where(c, prev).name}.`
+    : home ? `Back home on ${isl.name}.`
+    : shown ? `Still where the story last saw them, on ${isl.name}.`
     : `Not on the map right now${away ? `: ${away}` : ''}.`
   return `<p class="note${shown ? '' : ' off'}">${why}</p>
     ${prev >= 0 && prev !== arc ? `<p>Last seen: ${spot(prev)}</p>` : ''}${next >= 0 ? `<p>Next seen: ${spot(next)}</p>` : ''}`

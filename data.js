@@ -7,6 +7,7 @@ import isl from './islands.js'
 // One char per arc, used in the cast files. '7ab+' = arcs 7, a and b, and the + marks b as the arc they joined the crew.
 // 'g(banaro)' = seen in arc g, but on Banaro Island instead of the island the arc plays on.
 // Capitals are the past (before Luffy sets sail), in chronological order. 'l!' = dies in arc l.
+// 'o*' = lives on the island of arc o and goes back there once the story leaves them (from arc o on). 'v-' = leaves right after arc v.
 export const CODES = 'ABPCDEFQGHRIJKSLMNO0123456789abcdefghijklmxnopqrstuvw'   // x = the two-year timeskip
 
 const rows = s => s.trim().split('\n').map(l => l.split('|'))
@@ -83,13 +84,15 @@ Elbaph|Final|elbaf|1126-|*|The crew finally reaches the land of the giants and i
 
 // name|epithet|affiliation|devil fruit|look (see sprites.js)|arcs|optional: what they are doing while off the map
 export const CAST = rows([c0, c1, c2, c3].join('\n').replace(/\n+/g, '\n')).map(([name, epithet, crew, fruit, look, a, away], id) => {
-  const c = { id, name, epithet, crew, fruit, look, away, key: name.split(' ').pop()[0], giant: look.slice(7).includes('G'), arcs: [], at: {} }
-  for (const [, ch, plus, dies, where] of a.matchAll(/(.)(\+)?(!)?(?:\((\w+)\))?/g)) {
+  const c = { id, name, epithet, crew, fruit, look, away, key: name.split(' ').pop()[0], giant: look.slice(7).includes('G'), arcs: [], at: {}, homes: [] }
+  for (const [, ch, plus, dies, where, home, leaves] of a.matchAll(/(.)(\+)?(!)?(?:\((\w+)\))?(\*)?(-)?/g)) {
     const i = CODES.indexOf(ch)
     c.arcs.push(i)
     if (plus) c.join = i
     if (dies) c.dies = i
     if (where) c.at[i] = island(where)
+    if (home) c.homes.push([i, c.at[i] ?? ARCS[i].isl])
+    if (leaves) c.leaves = i
   }
   return c
 })
@@ -99,11 +102,16 @@ export const inArc = (c, a) => c.arcs.includes(a) ||
 export const where = (c, a) => c.at[a] ?? ARCS[a].isl
 
 export const SAIL = CODES.indexOf('0')   // first arc of the voyage, everything before it is the past
-// Where is a character at arc `now`? prev/next are the nearest appearances (-1 = none), shown = drawn on the map.
+const SKIP = CODES.indexOf('x')
+// Where is a character at arc `now`? prev/next are the nearest appearances (-1 = none), shown = drawn on the map, isl = where.
+// A position carries over until the saga ends (or the timeskip passes); after that only people who live there stay on the map.
 export function locate(c, now) {
   let prev = now
   while (prev >= 0 && !inArc(c, prev)) prev--
   const next = ARCS.findIndex(a => a.i > now && inArc(c, a.i))
   const dead = now > c.dies
-  return { prev, next, dead, shown: prev >= 0 && !dead && !(now >= SAIL && prev < SAIL) }   // flashback positions do not carry into the voyage
+  const stale = prev >= 0 && prev < now && (c.leaves === prev || ARCS[prev].saga !== ARCS[now].saga || prev < SKIP && now >= SKIP)
+  const home = stale && prev >= SAIL && c.homes.findLast(([i]) => i <= now)?.[1]   // the latest home they had moved to by now
+  const isl = prev < 0 ? null : home || where(c, prev)
+  return { prev, next, dead, home: !!home, isl, shown: prev >= 0 && !dead && !(now >= SAIL && prev < SAIL) && (!stale || home) }   // flashbacks do not carry into the voyage
 }

@@ -14,7 +14,7 @@ Fisher Tiger||Sun Pirates (captain)||rk26dwkbC|I!
 Otohime||Ryugu Kingdom (queen)||eY200wpT|I!
 Donquixote Rosinante|Corazon|Marines, undercover in the Donquixote Pirates|Nagi Nagi no Mi|eY18mwwC|J!
 Makino||Partys Bar, Foosha Village||ed26you|KL
-Yasopp|Chaser|Red Hair Pirates (sniper)||aY200nd|Kv(elbaf)
+Yasopp|Chaser|Red Hair Pirates (sniper)||aY200nd|Kv(elbaf)w(gartel)
 Curly Dadan||Dadan Family (mountain bandits)||eo200wt|L
 Bell-mere||Former Marine, Cocoyasi Village||em600gn|M!
 Tom||Tom's Workers (shipwright)||yw05Yutb|N!

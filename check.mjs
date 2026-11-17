@@ -42,4 +42,7 @@ const wb = CAST.find(c => c.name === 'Edward Newgate'), seen = ch => locate(wb, 
 assert.deepEqual([seen('a').shown, seen('a').prev, seen('a').next], [false, at('D'), at('g')])   // Alabasta: off the map, God Valley behind, Sphinx ahead
 assert(seen('l').shown && seen('h').shown && !seen('m').shown && seen('m').dead)                // on the map from Sphinx to Marineford, then dead
 assert(!locate(CAST.find(c => c.name === 'Shanks'), at('0')).shown, 'flashback positions must not carry into the voyage')
+const on = (name, ch) => { const l = locate(CAST.find(c => c.name === name), at(ch)); return l.shown ? l.isl.id : null }
+assert.deepEqual([on('Neptune', 't'), on('Neptune', 'w'), on('Morgan', 'w'), on('Rob Lucci', 'w'), on('Vista', 'x')],
+  ['mary', 'fishman', null, null, null])   // home after the saga, gone after the saga, gone right after '-', gone after the timeskip
 console.log(`ok: ${CAST.length} characters, ${ARCS.length} arcs, ${ISLANDS.length} islands`)

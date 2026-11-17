@@ -57,6 +57,10 @@ name|epithet|affiliation|devil fruit|look|arcs|optional note
 - `7ab+` appears in stops `7`, `a` and `b`, and joins the Straw Hats at `b`
 - `g(banaro)` appears in stop `g`, but on Banaro Island instead of the island that stop plays on
 - `l!` dies in stop `l`
+- `o*` lives on the island of stop `o` and returns there once the story moves on
+- `v-` leaves the map right after stop `v`
+
+A character stays where the story last saw them until the saga ends or the timeskip passes. After that only the ones with a home are still drawn, on their home island.
 
 The stop codes are listed in `CODES` in `data.js`. Capitals are flashbacks.
 
