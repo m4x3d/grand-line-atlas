@@ -44,6 +44,8 @@
   aside h2 { margin: 0 0 2px; font-size: 16px; color: var(--gold); }
   aside h3 { margin: 14px 0 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9fb4d6; }
   aside p { margin: 6px 0; }
+  #upto-arc { max-width: 100%; margin: 2px 0 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); }
+  #upto { width: 6em; margin-left: 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); padding: 2px 4px; }
   #fold { position: sticky; top: 0; float: right; margin: -4px -4px 0 6px; width: 24px; font: inherit; color: var(--paper); background: #132a4f; border: 2px solid var(--line); cursor: pointer; }
   #fold:hover { border-color: var(--gold); color: var(--gold); }
   aside.min { bottom: auto; }   /* shrunk: only the card's title stays */
@@ -84,6 +86,7 @@
 <footer class="box">
   <button id="prev" aria-label="Previous arc">&lt;</button>
   <button id="next" aria-label="Next arc">&gt;</button>
+  <button id="play" aria-label="Play the story">▶</button>
   <span id="arc"></span>
   <div id="track">
     <div id="eras"><button id="era-past">THE PAST</button><button id="era-now">THE VOYAGE</button></div>

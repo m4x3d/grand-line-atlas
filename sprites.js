@@ -15,7 +15,7 @@ const BITS = ('25755 65656 34443 65556 74647 74644 34553 55755 72227 11152 55655
 export const SIZE = 1024
 export const charRect = i => [i % 32 * 32, (i / 32 | 0) * 42, 32, 42]
 export const glyph = ch => [(FONT.indexOf(ch) + 44) % 44 * 4, 432, 4, 7]   // unknown chars fall through to the blank
-export const SHIP = { merry: [0, 448, 64, 64], sunny: [64, 448, 64, 64] }
+export const SHIP = { merry: [0, 448, 64, 64], sunny: [64, 448, 64, 64] }   // bow west; 128 px to the right, the same ships mirrored
 export const DOT = [180, 432, 3, 3]   // one dot of the dotted route
 
 /* look = skin, hair colour, hair style, hat, hat colour, top, bottom, then extras
@@ -123,6 +123,7 @@ export function makeAtlas(cast) {
   ;[ox, oy] = SHIP.merry; ox++; ship(R, false)   // one pixel in, so the outline stays inside the cell
   ;[ox, oy] = SHIP.sunny; ox++; ship(R, true)
   outline(g, 512)
+  g.save(); g.scale(-1, 1); g.drawImage(cv, 0, 448, 128, 64, -256, 448, 128, 64); g.restore()   // mirrored ships, bow east
   BITS.forEach((b, i) => {
     ox = i * 4; oy = 432
     R('#0b1830d0', 0, 0, 4, 7)

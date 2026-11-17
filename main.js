@@ -1,4 +1,4 @@
-import { ARCS, ISLANDS, CAST, CODES, LAP, SAIL, TARAI, inArc, where, locate } from './data.js'
+import { ARCS, ISLANDS, CAST, CODES, LAP, SAIL, TARAI, inArc, where, locate, known, setLimit, LIMIT } from './data.js'
 import { makeAtlas, charRect, glyph, SHIP, DOT } from './sprites.js'
 import { DECAL } from './decals.js'
 import { initGPU, OFF } from './gpu.js'
@@ -36,6 +36,25 @@ ISLANDS.forEach((s, i) => {
 
 U.set(TARAI, OFF.tarai)
 
+// Spoiler guard. An island exists once a stop the reader knows plays on it or shows someone there (or no stop ever does).
+const FIRST = new Map(ISLANDS.map(s => [s, Math.min(...ARCS.filter(a => a.isl === s || CAST.some(c => c.at[a.i] === s)).map(a => a.reveal)) % Infinity || 0]))
+const seenIsl = s => FIRST.get(s) <= LIMIT
+let K = []   // the stops the reader may see, in timeline order
+// finished voyage arcs and their last chapter, for the guard's arc picker (the running arc has no end yet)
+const READ = ARCS.filter(a => !a.past && /^\d+-\d+/.test(a.ch)).map(a => [a.name, +a.ch.match(/-(\d+)/)[1]])
+function guard(n) {
+  setLimit(n)
+  try { n > 0 ? localStorage.setItem('upto', n) : localStorage.removeItem('upto') } catch {}
+  ISLANDS.forEach((s, i) => U[OFF.isl + i * 4 + 1] = seenIsl(s) ? s.y : -1e4)   // unseen islands sink far off the map
+  K = ARCS.filter(a => known(a.i)).map(a => a.i)
+  when.max = K.length - 1
+  const past = K.filter(i => i < SAIL).length
+  $('#era-past').hidden = !past; $('#era-past').style.flex = past; $('#era-now').style.flex = K.length - past
+  $('#names').innerHTML = FIND().map(x => `<option value="${x.name}">`).join('')
+}
+const nearestStop = i => K.reduce((b, k) => Math.abs(k - i) < Math.abs(b - i) ? k : b)   // the closest stop the reader may see
+const step = d => setArc(K[clamp(K.indexOf(arc) + d, 0, K.length - 1)])
+
 // S = screen px per sprite pixel. The terrain is drawn at half that resolution, cam.z is in terrain px per world unit.
 let arc = 0, sailedLegs = 0, placed = [], hits = [], hover = null, sel = null, ship = null, n = 0, W = 0, H = 0, S = 1, drag = null, mouse = [-9, -9]
 const cam = { x: 640, y: 500, z: .3 }, tgt = { ...cam }
@@ -49,7 +68,6 @@ const near = x => cam.x + lap(x - cam.x)         // the copy of a world x that i
 // Points are [x, y, hidden under an island].
 const LOOPS = ['longring', 'thriller', 'punk']   // ponytail: hand-picked, the legs into these islands curl once
 const STOPS = [ISLANDS[0], ...ARCS.filter(a => a.only).map(a => a.isl)]
-const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x)
 const VIA = { 'marineford amazon': [[1060, 790]] }   // out of the Tarai Current, through the Calm Belt below Impel Down
 function leg(a, b, k, before) {   // before: earlier legs between the same two islands, not to be crossed
   const dx = lap(b.x - a.x), dy = b.y - a.y, len = Math.hypot(dx, dy)
@@ -80,6 +98,7 @@ function leg(a, b, k, before) {   // before: earlier legs between the same two i
   const pts = tries.reduce((hit, t) => hit ?? (p => clear(p) ? p : null)(stroke(...t)), null) ?? (console.warn('route fallback', a.id, b.id), stroke(.35 * flip, Math.PI / 2, .4))
   return pts
 }
+const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x)
 const blur = pts => pts.map((p, i) => i < 4 || i > pts.length - 5 ? p : [0, 1].map(c => pts.slice(i - 4, i + 5).reduce((t, q) => t + q[c], 0) / 9))
 const LEGS = []
 STOPS.slice(1).forEach((b, k) => {
@@ -90,6 +109,15 @@ STOPS.slice(1).forEach((b, k) => {
   for (let n = 0; n < (hops.length > 2 ? 6 : 0); n++) pts = blur(pts)   // round off the turn at a waypoint
   LEGS.push(pts.map(p => [...p, ISLANDS.some(s => Math.hypot(lap(p[0] - s.x), p[1] - s.y) < s.r * 1.1)]))
 })
+const LEN = LEGS.map(pts => pts.reduce((t, p, i) => i ? t + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0))
+const along = (pts, d) => {   // the point d along a leg, and which way it heads
+  for (let j = 1; j < pts.length; j++) {
+    const [x0, y0] = pts[j - 1], [x1, y1] = pts[j], l = Math.hypot(x1 - x0, y1 - y0)
+    if (d <= l || j === pts.length - 1) return [x0 + (x1 - x0) * Math.min(1, d / l), y0 + (y1 - y0) * Math.min(1, d / l), x1 - x0]
+    d -= l
+  }
+}
+let voyage = null   // the ship under way on the newest leg: { leg, t0, ms, free: the user moved the camera meanwhile }
 
 // Every character stands where the story last saw them at the selected point in time.
 function place() {
@@ -156,21 +184,24 @@ function flyTo(x, y, z) {
 // Gold ticks above the slider: every stop on the timeline that involves the selected island or character
 let selIsl = null
 function marks(stops) {
-  $('#marks').innerHTML = stops.map(i => `<button data-arc="${i}" title="${ARCS[i].name}" style="left:${i / (ARCS.length - 1) * 100}%"></button>`).join('')
+  $('#marks').innerHTML = stops.map(i => `<button data-arc="${i}" title="${ARCS[i].name}" style="left:${K.indexOf(i) / (K.length - 1) * 100}%"></button>`).join('')
 }
 function showArc() {
   sel = selIsl = null
   marks([])
   const a = ARCS[arc]
   panel.innerHTML = `<h2>${a.name}</h2><div class="dim">${when_(a)} · ${a.isl.name}</div><p>${a.text}</p>
-    <h3>Characters in this arc</h3>${CAST.filter(c => inArc(c, arc)).map(who).join('')}`
+    <h3>Characters in this arc</h3>${CAST.filter(c => inArc(c, arc)).map(who).join('')}
+    <h3>Spoiler guard</h3><label class="dim">I have read up to <select id="upto-arc"><option value="">everything</option>${READ.map(([name, end]) =>
+      `<option value="${end}"${end === LIMIT ? ' selected' : ''}>the end of ${name}</option>`).join('')}</select></label>
+    <label class="dim">or chapter <input id="upto" type="number" min="1" inputmode="numeric" placeholder="all" value="${LIMIT < Infinity ? LIMIT : ''}"></label>`
   card.scrollTop = 0
 }
 function showChar(c) {
   sel = c; selIsl = null
   marks(ARCS.filter(a => inArc(c, a.i)).map(a => a.i))
   panel.innerHTML = `<i class="spr big" style="${pos(c)}"></i><h2>${c.name}</h2>
-    ${c.epithet ? `<div class="dim">"${c.epithet}"</div>` : ''}${wiki(c)}<p>${c.crew}</p>
+    ${c.epithet ? `<div class="dim">"${c.epithet}"</div>` : ''}${wiki(c)}<p>${LIMIT < Infinity ? c.crew.split(', later')[0] : c.crew}</p>
     ${c.fruit ? `<h3>Devil Fruit</h3><p>${c.fruit}</p>` : ''}
     <h3>Where</h3>${status(c)}
     <h3>Appears in</h3>${ARCS.filter(a => inArc(c, a.i)).map(chip).join('')}${back()}`
@@ -190,11 +221,13 @@ function showIsland(s) {
   card.scrollTop = 0
 }
 function focusChar(c) {
+  if (voyage) voyage.free = true
   const p = placed.find(p => p.c === c)
   showChar(c)   // when they are not on the map, the card says why and where to find them
   if (p) flyTo(p.x, p.y, Math.max(tgt.z, 4))
 }
 function focusIsland(s) {
+  if (voyage) voyage.free = true
   showIsland(s)
   flyTo(s.x, s.y, Math.max(tgt.z, clamp(100 / s.ext, 2.6, 4)))
 }
@@ -206,17 +239,27 @@ function frameCrew() {
   const free = innerWidth > 760 ? innerWidth - 330 : innerWidth
   flyTo(mid(xs), mid(ys), Math.min(free / span(xs), (innerHeight - 90) / span(ys)) / S / 2)
 }
+function flyArc(a) {
+  if (a.wide) frameCrew()
+  else flyTo(a.isl.x, a.isl.y, clamp(100 / a.isl.ext, 2.6, 4))
+}
 function setArc(i, fly = true) {
-  arc = clamp(i, 0, ARCS.length - 1)
-  const a = ARCS[arc]
-  when.value = arc
+  arc = nearestStop(i)
+  const a = ARCS[arc], legs = sailedLegs, was = ship
+  when.value = K.indexOf(arc)
   $('#arc').innerHTML = `<b>${a.name}</b> <span class="dim">${a.past ? a.ch : `${a.saga} Saga · ch. ${a.ch}`}</span>`
   document.body.classList.toggle('past', a.past)   // sepia map and timeline while in a flashback
   history.replaceState(null, '', '#' + CODES[arc])
   place()
   showArc()
-  if (fly && a.wide) frameCrew()
-  else if (fly) flyTo(a.isl.x, a.isl.y, clamp(100 / a.isl.ext, 2.6, 4))
+  // one leg further and the ship is aboard, from where it waited to where it is now: it sails while the camera shows the
+  // whole leg, then lands. Not after a leg Luffy went alone (Rusukaina to Sabaody: the Sunny never left Sabaody).
+  voyage = sailedLegs === legs + 1 && was?.isl === STOPS[legs] && ship?.isl === STOPS[sailedLegs] ? { leg: legs, t0: performance.now(), ms: 1200 + LEN[legs] * 5, free: !fly } : null
+  if (voyage) {
+    const xs = LEGS[legs].map(p => p[0]), ys = LEGS[legs].map(p => p[1]), mid = v => (Math.max(...v) + Math.min(...v)) / 2
+    const span = v => Math.max(...v) - Math.min(...v) + 80, free = innerWidth > 760 ? innerWidth - 330 : innerWidth
+    if (fly) flyTo(mid(xs), mid(ys), Math.min(3, free / span(xs), (innerHeight - 90) / span(ys)) / S / 2)
+  } else if (fly) flyArc(a)
 }
 
 // Sprite instances: world anchor, offset in sprite px, atlas rect, integer scale, hop phase (-1 = still), tint
@@ -246,23 +289,36 @@ function frame(ms) {
   n = 0; hits = []
   // the route sailed so far as dots that drift forward, newest leg in gold
   const gap = 6 / z, drift = ms / 1000 * .5 % 1 * gap
+  const p = voyage ? Math.min(1, (performance.now() - voyage.t0) / voyage.ms) : 1, e = ease(p)
   LEGS.slice(0, sailedLegs).forEach((pts, i) => {
-    let at = drift
+    let at = drift, walked = 0
+    const end = voyage?.leg === i ? e * LEN[i] : Infinity   // drawn only as far as the ship has sailed
     for (let j = 1; j < pts.length; j++) {
       const [x0, y0, hid] = pts[j - 1], [x1, y1] = pts[j], d = Math.hypot(x1 - x0, y1 - y0)
-      for (; at < d; at += gap) {
+      for (; at < d && walked + at < end; at += gap) {
         const x = x0 + (x1 - x0) * at / d, y = y0 + (y1 - y0) * at / d
         if (!hid && Math.abs(lap(x - cam.x)) * z2 < W / 2 + 3 && Math.abs(y - cam.y) * z2 < H / 2 + 3) push(x, y, -1, -1, DOT, 1, -1, i === sailedLegs - 1 ? 1 : 0)
       }
-      at -= d
+      at -= d; walked += d
     }
   })
   if (z < 1.1) for (const [name, x, y] of SEAS) text(name, x, y)
   const cur = ARCS[arc].isl
-  for (const s of ISLANDS) if (z >= .75 || s === cur) text(s.name, s.x, s.y + s.ext + 3, 0, s === cur ? 1 : 0)
+  for (const s of ISLANDS) if (seenIsl(s) && (z >= .75 || s === cur)) text(s.name, s.x, s.y + s.ext + 3, 0, s === cur ? 1 : 0)
   if (z >= .75) text('Tarai Current', TARAI[0], TARAI[1] - 12)   // above the island names on the ring
   const k = z >= 6 ? 2 : 1
-  if (ship) push(ship.isl.x - ship.isl.ext - 5, ship.isl.y + ship.isl.r * .5, -32 * k, -58 * k, ship.rect, k, 0)
+  if (ship) {
+    const dock = s => [s.x - s.ext - 5, s.y + s.r * .5]   // where the ship waits beside an island
+    let [x, y] = dock(ship.isl), east = false
+    if (voyage) {   // on the way: follow the leg, sliding from one dock to the other, bow first (the sprite faces west)
+      const [lx, ly, dx] = along(LEGS[voyage.leg], e * LEN[voyage.leg]), a = STOPS[voyage.leg]
+      const u = 1 - ease(e / .15), v = ease((e - .85) / .15)   // off the dock at the start, onto the next one at the end, on the line between
+      x = lx + (dock(a)[0] - a.x) * u + (x - ship.isl.x) * v; y = ly + (dock(a)[1] - a.y) * u + (y - ship.isl.y) * v
+      east = dx > 0
+      if (p === 1) { if (!voyage.free) flyArc(ARCS[arc]); voyage = null }
+    }
+    push(x, y, -32 * k, -58 * k, east ? [ship.rect[0] + 128, ...ship.rect.slice(1)] : ship.rect, k, 0)
+  }
   const pins = ARCS[arc].wide && z < 1.6   // zoomed out on the timeskip: the scattered Straw Hats stay visible as named pins
   if (z >= 1.6 || pins) {
     for (const p of placed) {
@@ -293,6 +349,7 @@ const pinch = () => {
   return { d: Math.hypot(ax - bx, ay - by), m: [(ax + bx) / 2 / S, (ay + by) / 2 / S] }
 }
 cv.onpointerdown = e => {
+  if (voyage) voyage.free = true
   touches.set(e.pointerId, [e.clientX, e.clientY])
   drag = { x: e.clientX, y: e.clientY, moved: touches.size > 1 ? 99 : 0 }   // a pinch is never a tap
   cv.setPointerCapture(e.pointerId)
@@ -322,13 +379,14 @@ cv.onpointerup = cv.onpointercancel = e => {
   }
   if (e.type === 'pointerup' && drag && drag.moved < 5) {
     const p = pick(), [wx, wy] = toWorld(mouse)
-    const s = ISLANDS.find(s => Math.hypot(lap(s.x - wx), s.y - wy) < s.ext * 1.1)
+    const s = ISLANDS.find(s => seenIsl(s) && Math.hypot(lap(s.x - wx), s.y - wy) < s.ext * 1.1)
     if (p) showChar(p.c)
     else if (s) focusIsland(s)
   }
   drag = null
 }
 cv.addEventListener('wheel', e => {
+  if (voyage) voyage.free = true
   e.preventDefault()
   const m = [e.clientX / S, e.clientY / S]
   zoomAt(m, m, Math.exp(-e.deltaY * .0015))   // zoom towards the cursor
@@ -338,6 +396,7 @@ $('#fold').onclick = e => {
   const min = card.classList.toggle('min')
   Object.assign(e.target, { textContent: min ? '+' : '–', ariaLabel: `${min ? 'Expand' : 'Shrink'} the info card`, ariaExpanded: !min })
 }
+panel.onchange = e => { if (e.target.id.startsWith('upto')) { guard(+e.target.value); setArc(arc, false) } }
 panel.onclick = $('#marks').onclick = e => {
   const b = e.target.closest('button')
   if (!b) return
@@ -350,27 +409,43 @@ panel.onclick = $('#marks').onclick = e => {
   else if (b.dataset.c) focusChar(CAST[b.dataset.c])
   else setArc(arc)   // "Back to …": the stop's card and its island again
 }
-$('#prev').onclick = () => setArc(arc - 1)
-$('#next').onclick = () => setArc(arc + 1)
+$('#prev').onclick = () => { play(false); step(-1) }
+$('#next').onclick = () => { play(false); step(1) }
+// Play the story: one stop after another, waiting for the ship to land
+let playing = null
+function play(on) {
+  clearTimeout(playing); playing = null
+  $('#play').textContent = on ? '❚❚' : '▶'; $('#play').ariaLabel = on ? 'Pause' : 'Play the story'
+  if (!on) return
+  if (arc === K.at(-1)) setArc(SAIL)
+  const tick = () => {
+    if (arc === K.at(-1)) return play(false)
+    step(1)
+    playing = setTimeout(tick, (voyage?.ms ?? 0) + 2500)
+  }
+  playing = setTimeout(tick, 1500)
+}
+$('#play').onclick = () => play(!playing)
 $('#world').onclick = () => Object.assign(tgt, { y: 600, z: 0 })
-when.max = ARCS.length - 1
-$('#era-past').style.flex = SAIL; $('#era-now').style.flex = ARCS.length - SAIL
-$('#era-past').onclick = () => setArc(0)
-$('#era-now').onclick = () => setArc(SAIL)
-when.oninput = () => setArc(+when.value)
-const FIND = [...CAST, ...ISLANDS]   // characters first, so a shared name finds the person
-$('#names').innerHTML = FIND.map(x => `<option value="${x.name}">`).join('')
+$('#era-past').onclick = () => { play(false); setArc(K[0]) }
+$('#era-now').onclick = () => { play(false); setArc(SAIL) }
+when.oninput = () => { play(false); setArc(K[+when.value]) }
+// characters first, so a shared name finds the person; only who and what the reader has met
+const FIND = () => [...CAST.filter(c => ARCS.some(a => inArc(c, a.i))), ...ISLANDS.filter(seenIsl)]
 $('#clear').onclick = () => { $('#find').value = ''; $('#find').focus() }
 $('#find').onchange = e => {
   const q = e.target.value.trim().toLowerCase()
-  const hit = q && (FIND.find(x => x.name.toLowerCase() === q) ?? FIND.find(x => x.name.toLowerCase().includes(q)))
+  const all = FIND(), hit = q && (all.find(x => x.name.toLowerCase() === q) ?? all.find(x => x.name.toLowerCase().includes(q)))
   if (hit) hit.look ? focusChar(hit) : focusIsland(hit)
 }
 onkeydown = e => {
   if (e.target.matches('input')) return
-  if (e.key === 'ArrowLeft') setArc(arc - 1)
-  if (e.key === 'ArrowRight') setArc(arc + 1)
+  if (e.key === 'ArrowLeft') { play(false); step(-1) }
+  if (e.key === 'ArrowRight') { play(false); step(1) }
 }
 
+let saved = 0
+try { saved = +localStorage.getItem('upto') } catch {}
+guard(saved)
 setArc(location.hash[1] && CODES.includes(location.hash[1]) ? CODES.indexOf(location.hash[1]) : SAIL)
 requestAnimationFrame(frame)

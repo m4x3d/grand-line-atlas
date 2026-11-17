@@ -25,27 +25,27 @@ export const TARAI = (([a, b, c]) => {
 })(['enies', 'impel', 'marineford'].map(id => ISLANDS.find(s => s.id === id)))
 const island = id => ISLANDS.find(x => x.id === id) ?? (() => { throw new Error('unknown island ' + id) })()
 
-// name|saga|island|chapters|crew present ('*' all who joined, else initials)|summary|optional view ('crew' = frame the whole scattered crew)
+// name|saga|island|chapters (flashbacks: when, and the chapter that first tells it)|crew present ('*' all who joined, else initials)|summary|optional view ('crew' = frame the whole scattered crew)
 export const ARCS = rows(`
-Void Century|Past|mary|900 to 800 years ago||A great kingdom falls, Joy Boy leaves a promise unkept and twenty kings found the World Government.
-Noland and Calgara|Past|jaya|400 years ago||The explorer Noland befriends the Shandian warrior Calgara, before half of Jaya is blown into the sky.
-Noland's Trial|Past|lvneel|400 years ago||Back in Lvneel the king finds no city of gold. Noland is executed as a liar and lives on as a fairy tale.
-The Rumbar Pirates|Past|reverse|52 years ago||Brook's crew leaves the young whale Laboon at Twin Cape with a promise to come back.
-God Valley|Past|godvalley|38 years ago||Roger and Garp join forces against the Rocks Pirates. The island disappears from every map.
-Laugh Tale|Past|laugh|25 years ago||The Roger Pirates reach the final island, learn the true history and laugh.
-Roger's Execution|Past|logue|24 years ago||The King of the Pirates dies smiling in Loguetown and the great pirate era begins.
-Ace's Birth|Past|baterilla|22 years ago||Portgas D. Rouge hides Roger's child for twenty months and dies giving birth. Garp takes the boy to Dawn Island.
-The Ohara Incident|Past|ohara|22 years ago||A Buster Call burns the island of scholars and eight-year-old Robin escapes alone.
-Oden's Last Stand|Past|wano|20 years ago||Kozuki Oden falls to Kaido and Orochi. Toki sends his retainers twenty years into the future.
-The White City|Past|flevance|16 years ago||Amber Lead poisons Flevance and its neighbours wipe the city out. Ten-year-old Law escapes hidden among the dead.
-The Sun Pirates|Past|fishman|15 to 10 years ago||Fisher Tiger frees the slaves of Mary Geoise, and Queen Otohime gives her life for peace with humans.
-Law and Corazon|Past|minion|13 years ago||Rosinante steals the Ope Ope no Mi for a dying boy from Flevance and pays for it with his life.
-Shanks in Foosha|Past|dawn|12 years ago||Shanks loses an arm saving seven-year-old Luffy and leaves him his straw hat.
-Kuma and Bonney|Past|sorbet|12 years ago||In the Sorbet Kingdom Kuma raises Ginny's daughter Bonney and searches for a cure for her illness.
-Brothers of the Gray Terminal|Past|dawn|12 years ago||Luffy, Ace and Sabo swear brotherhood. Sabo's boat is shot down by a Celestial Dragon.
-Bell-mere|Past|conomi|10 years ago||Arlong takes Cocoyasi Village. Bell-mere dies for her daughters and Nami is forced to draw his maps.
-Tom's Workers|Past|water7|10 years ago||Spandam frames the shipwright who built the Oro Jackson and the sea train. Franky is run over trying to stop it.
-Hiriluk's Cherry Blossoms|Past|drum|7 years ago||A quack doctor gives a lonely reindeer a name and a flag, and makes it snow pink.
+Void Century|Past|mary|900 to 800 years ago, told in ch. 1114||A great kingdom falls, Joy Boy leaves a promise unkept and twenty kings found the World Government.
+Noland and Calgara|Past|jaya|400 years ago, told in ch. 287||The explorer Noland befriends the Shandian warrior Calgara, before half of Jaya is blown into the sky.
+Noland's Trial|Past|lvneel|400 years ago, told in ch. 228||Back in Lvneel the king finds no city of gold. Noland is executed as a liar and lives on as a fairy tale.
+The Rumbar Pirates|Past|reverse|52 years ago, told in ch. 487||Brook's crew leaves the young whale Laboon at Twin Cape with a promise to come back.
+God Valley|Past|godvalley|38 years ago, told in ch. 957||Roger and Garp join forces against the Rocks Pirates. The island disappears from every map.
+Laugh Tale|Past|laugh|25 years ago, told in ch. 967||The Roger Pirates reach the final island, learn the true history and laugh.
+Roger's Execution|Past|logue|24 years ago, told in ch. 1||The King of the Pirates dies smiling in Loguetown and the great pirate era begins.
+Ace's Birth|Past|baterilla|22 years ago, told in ch. 550||Portgas D. Rouge hides Roger's child for twenty months and dies giving birth. Garp takes the boy to Dawn Island.
+The Ohara Incident|Past|ohara|22 years ago, told in ch. 391||A Buster Call burns the island of scholars and eight-year-old Robin escapes alone.
+Oden's Last Stand|Past|wano|20 years ago, told in ch. 960||Kozuki Oden falls to Kaido and Orochi. Toki sends his retainers twenty years into the future.
+The White City|Past|flevance|16 years ago, told in ch. 762||Amber Lead poisons Flevance and its neighbours wipe the city out. Ten-year-old Law escapes hidden among the dead.
+The Sun Pirates|Past|fishman|15 to 10 years ago, told in ch. 621||Fisher Tiger frees the slaves of Mary Geoise, and Queen Otohime gives her life for peace with humans.
+Law and Corazon|Past|minion|13 years ago, told in ch. 761||Rosinante steals the Ope Ope no Mi for a dying boy from Flevance and pays for it with his life.
+Shanks in Foosha|Past|dawn|12 years ago, told in ch. 1||Shanks loses an arm saving seven-year-old Luffy and leaves him his straw hat.
+Kuma and Bonney|Past|sorbet|12 years ago, told in ch. 1095||In the Sorbet Kingdom Kuma raises Ginny's daughter Bonney and searches for a cure for her illness.
+Brothers of the Gray Terminal|Past|dawn|12 years ago, told in ch. 582||Luffy, Ace and Sabo swear brotherhood. Sabo's boat is shot down by a Celestial Dragon.
+Bell-mere|Past|conomi|10 years ago, told in ch. 77||Arlong takes Cocoyasi Village. Bell-mere dies for her daughters and Nami is forced to draw his maps.
+Tom's Workers|Past|water7|10 years ago, told in ch. 353||Spandam frames the shipwright who built the Oro Jackson and the sea train. Franky is run over trying to stop it.
+Hiriluk's Cherry Blossoms|Past|drum|7 years ago, told in ch. 141||A quack doctor gives a lonely reindeer a name and a flag, and makes it snow pink.
 Romance Dawn|East Blue|shells|1-7|*|Luffy sets out from Foosha Village, frees Koby from Alvida and recruits Zoro in Shells Town.
 Orange Town|East Blue|orange|8-21|*|Nami teams up with the crew to bring down Buggy the Clown.
 Syrup Village|East Blue|syrup|22-41|*|Usopp helps stop Captain Kuro's plot against Kaya and the crew receives the Going Merry.
@@ -80,7 +80,8 @@ Levely|Whole Cake Island|mary|903-908||The world's rulers gather at Mary Geoise 
 Wano Country|Wano|wano|909-1057|*|Samurai, minks and pirates raid Onigashima to free Wano from Kaido and Orochi.
 Egghead|Final|egghead|1058-1125|*|On Vegapunk's island of the future the World Government strikes and a message reaches the whole world.
 Elbaph|Final|elbaf|1126-|*|The crew finally reaches the land of the giants and its accursed prince Loki.
-`).map(([name, saga, isl, ch, only, text, view], i) => ({ i, name, saga, ch, only, text, past: saga === 'Past', wide: view === 'crew', isl: island(isl) }))
+`).map(([name, saga, isl, ch, only, text, view], i) => ({ i, name, saga, ch, only, text, past: saga === 'Past', wide: view === 'crew', isl: island(isl),
+  reveal: +(ch.match(/ch\. (\d+)/) ?? ch.match(/^(\d+)/))[1] }))   // the chapter a reader first sees it
 
 // name|epithet|affiliation|devil fruit|look (see sprites.js)|arcs|optional: what they are doing while off the map
 export const CAST = rows([c0, c1, c2, c3].join('\n').replace(/\n+/g, '\n')).map(([name, epithet, crew, fruit, look, a, away], id) => {
@@ -97,8 +98,12 @@ export const CAST = rows([c0, c1, c2, c3].join('\n').replace(/\n+/g, '\n')).map(
   return c
 })
 
-export const inArc = (c, a) => c.arcs.includes(a) ||
-  (c.join !== undefined && a > c.join && (ARCS[a].only === '*' || ARCS[a].only.includes(c.key)))
+// Spoiler guard: the last chapter the reader has read. Stops told after it do not exist for inArc and everything built on it.
+export let LIMIT = Infinity
+export const setLimit = n => { LIMIT = n > 0 ? n : Infinity }
+export const known = a => ARCS[a].reveal <= LIMIT
+export const inArc = (c, a) => known(a) && (c.arcs.includes(a) ||
+  (c.join !== undefined && a > c.join && (ARCS[a].only === '*' || ARCS[a].only.includes(c.key))))
 export const where = (c, a) => c.at[a] ?? ARCS[a].isl
 
 export const SAIL = CODES.indexOf('0')   // first arc of the voyage, everything before it is the past

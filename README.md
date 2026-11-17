@@ -2,7 +2,7 @@
 
 An interactive pixel-art map of the world of One Piece. Move through the story on a timeline and see which characters are on which island at that point.
 
-It contains spoilers up to the Elbaph arc.
+It contains spoilers up to the Elbaph arc. To hide them, set the spoiler guard on a stop's card to the last chapter you have read: later stops, characters, islands and search results disappear.
 
 ## Run it
 
@@ -22,7 +22,7 @@ Opening `index.html` straight from disk does not work, because browsers block ES
 - **Characters** stand on the island where the story last saw them at the selected stop. Click one for epithet, affiliation, Devil Fruit, where they are right now and every stop they appear in.
 - **Islands** show a description, every stop that involves them and who is there now. The stops also appear as ticks above the timeline.
 - **Search** finds characters and islands.
-- The dotted line is Luffy's route so far. The Going Merry or Thousand Sunny waits at the crew's current island.
+- The dotted line is Luffy's route so far. The Going Merry or Thousand Sunny waits at the crew's current island and sails each new leg as you step forward. ▶ plays the story stop by stop.
 
 Controls: drag to pan, scroll to zoom, arrow keys to step through the timeline.
 
