@@ -52,9 +52,9 @@ function place() {
     groups.get(isl).push(c)
   }
   placed = []
-  // a staggered grid; k = 2 for giants, who need twice the room
+  // a staggered grid; k = 2 for giants, who need twice the room and fill wide rows instead
   const lay = (cast, k) => {
-    const cols = Math.ceil(Math.sqrt(cast.length * 1.6))
+    const cols = k > 1 ? Math.min(cast.length, 5) : Math.ceil(Math.sqrt(cast.length * 1.6))   // giants: rows of up to five
     return cast.map((c, i) => ({ c, row: i / cols | 0, dx: (i % cols - (cols - 1) / 2 + ((i / cols | 0) & 1) * .5 - .25) * 5.4 * k }))
   }
   for (const [isl, cast] of groups) {
