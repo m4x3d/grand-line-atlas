@@ -41,10 +41,10 @@ The Sun Pirates|Past|fishman|15 to 10 years ago||Fisher Tiger frees the slaves o
 Law and Corazon|Past|minion|13 years ago||Rosinante steals the Ope Ope no Mi for a dying boy from Flevance and pays for it with his life.
 Shanks in Foosha|Past|dawn|12 years ago||Shanks loses an arm saving seven-year-old Luffy and leaves him his straw hat.
 Kuma and Bonney|Past|sorbet|12 years ago||In the Sorbet Kingdom Kuma raises Ginny's daughter Bonney and searches for a cure for her illness.
-Brothers of the Gray Terminal|Past|dawn|10 years ago||Luffy, Ace and Sabo swear brotherhood. Sabo's boat is shot down by a Celestial Dragon.
+Brothers of the Gray Terminal|Past|dawn|12 years ago||Luffy, Ace and Sabo swear brotherhood. Sabo's boat is shot down by a Celestial Dragon.
 Bell-mere|Past|conomi|10 years ago||Arlong takes Cocoyasi Village. Bell-mere dies for her daughters and Nami is forced to draw his maps.
 Tom's Workers|Past|water7|10 years ago||Spandam frames the shipwright who built the Oro Jackson and the sea train. Franky is run over trying to stop it.
-Hiriluk's Cherry Blossoms|Past|drum|8 years ago||A quack doctor gives a lonely reindeer a name and a flag, and makes it snow pink.
+Hiriluk's Cherry Blossoms|Past|drum|7 years ago||A quack doctor gives a lonely reindeer a name and a flag, and makes it snow pink.
 Romance Dawn|East Blue|shells|1-7|*|Luffy sets out from Foosha Village, frees Koby from Alvida and recruits Zoro in Shells Town.
 Orange Town|East Blue|orange|8-21|*|Nami teams up with the crew to bring down Buggy the Clown.
 Syrup Village|East Blue|syrup|22-41|*|Usopp helps stop Captain Kuro's plot against Kaya and the crew receives the Going Merry.
@@ -78,7 +78,7 @@ Whole Cake Island|Whole Cake Island|wholecake|825-902|LNSCB|Luffy's team crashes
 Levely|Whole Cake Island|mary|903-908||The world's rulers gather at Mary Geoise while the Straw Hats sail for Wano.
 Wano Country|Wano|wano|909-1057|*|Samurai, minks and pirates raid Onigashima to free Wano from Kaido and Orochi.
 Egghead|Final|egghead|1058-1125|*|On Vegapunk's island of the future the World Government strikes and a message reaches the whole world.
-Elbaf|Final|elbaf|1126-|*|The crew finally reaches the land of the giants and its accursed prince Loki.
+Elbaph|Final|elbaf|1126-|*|The crew finally reaches the land of the giants and its accursed prince Loki.
 `).map(([name, saga, isl, ch, only, text, view], i) => ({ i, name, saga, ch, only, text, past: saga === 'Past', wide: view === 'crew', isl: island(isl) }))
 
 // name|epithet|affiliation|devil fruit|look (see sprites.js)|arcs|optional: what they are doing while off the map

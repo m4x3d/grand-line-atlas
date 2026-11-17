@@ -2,7 +2,7 @@
 
 An interactive pixel-art map of the world of One Piece. Move through the story on a timeline and see which characters are on which island at that point.
 
-It contains spoilers up to the Elbaf arc.
+It contains spoilers up to the Elbaph arc.
 
 ## Run it
 
@@ -18,7 +18,7 @@ Opening `index.html` straight from disk does not work, because browsers block ES
 ## What it does
 
 - **World map** with the four Blues, both Red Line crossings, the Calm Belts, Paradise and the New World. The map wraps around horizontally, so you can keep dragging past either Red Line.
-- **Timeline** with 53 stops: 19 flashbacks from the Void Century onward, then the voyage from Romance Dawn to Elbaf, including the timeskip. Flashbacks are marked in sepia on the timeline and turn the whole map sepia.
+- **Timeline** with 53 stops: 19 flashbacks from the Void Century onward, then the voyage from Romance Dawn to Elbaph, including the timeskip. Flashbacks are marked in sepia on the timeline and turn the whole map sepia.
 - **Characters** stand on the island where the story last saw them at the selected stop. Click one for epithet, affiliation, Devil Fruit, where they are right now and every stop they appear in.
 - **Islands** show a description, every stop that involves them and who is there now. The stops also appear as ticks above the timeline.
 - **Search** finds characters and islands.
@@ -70,7 +70,11 @@ It fails on unknown stops or islands, malformed look codes, appearances after de
 
 ## Accuracy
 
-The data was written from memory and is not checked against a wiki, so expect mistakes, especially in the most recent arcs. Island positions follow the known geography where there is one. Where the story gives no location, the placement is a guess. Corrections are welcome.
+The data is checked against the [One Piece Wiki](https://onepiece.fandom.com), last on 2026-11-16 up to chapter 1199: names, epithets, Devil Fruits, deaths, arc chapter ranges, flashback dates, the sea each island lies in and every character's arc appearances against the wiki's per-chapter character lists. Cameos of one or two chapters are left out on purpose, and a character seen only aboard a ship at sea has no island to stand on, so some appearances are still missing.
+
+The sprites were compared with the wiki's written appearance descriptions (hair, headwear, clothes, skin tone and signature features). Where the wiki names no colour, the anime's colour scheme is used.
+
+Island positions follow the known geography where there is one. Where the story gives no location, the placement is a guess. Corrections are welcome.
 
 ## Disclaimer
 

@@ -18,7 +18,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 const SUNNY = CODES.indexOf('g')   // the arc where the Sunny replaces the Merry
 // What a character is up to while the story is not looking, guessed from their affiliation (cast files can override it).
 const AWAY = [
-  [/Whitebeard Pirates|Red Hair|Big Mom|Beasts Pirates|Donquixote Pirates|Germa|Mink|Scabbards|Kozuki|Wano|Elbaf/, 'somewhere in the New World'],
+  [/Whitebeard Pirates|Red Hair|Big Mom|Beasts Pirates|Donquixote Pirates|Germa|Mink|Scabbards|Kozuki|Wano|Elbaph/, 'somewhere in the New World'],
   [/Five Elders|World Noble|Holy Knights|sovereign/, 'in the Holy Land Mary Geoise'],
   [/CP9|CP0/, 'on a mission for the World Government'],
   [/(?<!ex-)Warlord/, 'at large as a Warlord of the Sea'],

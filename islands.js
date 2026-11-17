@@ -28,13 +28,13 @@ kuraigana|Kuraigana Island|300|500|18|5a5a6a|45454f|2f2f3a|8a8f98|.15|0|Ruins of
 baltigo|Baltigo|430|500|16|f0f0ea|d8d8d0|c8c8c0|8a8f98|.1|0|Land of white soil, first headquarters of the Revolutionary Army.
 momoiro|Momoiro Island|560|500|18|f7c8d8|f28cb1|d86a9a|ffffff|.15|0|The Kamabakka Kingdom, later the Revolutionary Army's headquarters.
 weatheria|Weatheria|800|480|14|ffffff|e6eef8|c9d8ec|49c4d8|.1|1|A small sky island of weather scientists.
-banaro|Banaro Island|700|700|14|c9a070|a87442|8a5a35|d8322c|.15|0|Where Blackbeard defeated Ace.
+banaro|Banaro Island|800|560|14|c9a070|a87442|8a5a35|d8322c|.15|0|Where Blackbeard defeated Ace, a short sail from Water 7.
 karakuri|Karakuri Island|350|700|16|e8f0f8|c8d8ea|8a8f98|49c4d8|.15|0|Vegapunk's birthplace in the winter land of Baldimore.
 boin|Boin Archipelago|880|478|20|5fb845|d8322c|2a7535|f28cb1|.08|0|The Forest of Gluttony, an island that is one giant plant.
 namakura|Namakura Island|890|650|14|6a6a5a|55554a|3f3f35|8a5a35|.15|0|Harahettania, the land of poverty.
 impel|Impel Down|1040|775|14|8a8f98|6a6f78|555a66|1b1b22|.2|0|The great undersea prison in the Calm Belt, six levels deep and ringed by Sea Kings.
 amazon|Amazon Lily|860|770|22|4faa3f|2f8a35|8a8f98|d8322c|.1|0|The island of women in the Calm Belt, home of the Kuja and forbidden to men.
-rusukaina|Rusukaina|795|775|14|4faa3f|2f8a35|8a8f98|ffffff|0|0|An island of 48 seasons a year, Luffy's training ground.
+rusukaina|Rusukaina|800|750|14|4faa3f|2f8a35|8a8f98|ffffff|0|0|An island of 48 seasons a year, Luffy's training ground.
 mary|Mary Geoise|1240|555|24|f5f0e0|e8dcc0|ffffff|f2c230|.3|0|The Holy Land on top of the Red Line, seat of the World Government and home of the Celestial Dragons.
 fishman|Fish-Man Island|1240|655|22|5fd0c8|f28cb1|f5e08a|ffffff|.15|3|Home of fish-men and merfolk, 10,000 metres below the Red Line in a bubble lit by the Sunlight Tree Eve.
 newmarine|New Marineford|1310|500|14|d8d8d0|b8bcc4|f5f5f0|2f6fd0|.35|0|Marine Headquarters after the move to the New World.
@@ -48,7 +48,7 @@ karaibari|Karai Bari Island|1760|500|16|e8cf8a|d9b56a|c99a52|d8322c|.25|0|Headqu
 wano|Wano Country|1900|560|44|8fc85a|5a9a45|6a7a8a|f28cb1|.2|0|A closed country of samurai behind a wall of waterfalls, with Onigashima off its coast.
 winner|Winner Island|2040|500|14|8a8f98|6a6f78|555a66|ef7d21|.05|0|Where Law fought Blackbeard.
 egghead|Egghead|2040|645|24|e8f0f8|b8d8f0|ffffff|49c4d8|.3|0|The island of the future and Vegapunk's laboratory, a winter island kept warm by its own technology.
-elbaf|Elbaf|2180|560|44|4f9a45|2f7a3a|e8f0f8|c9a070|.08|0|The land of the giants, grown around the colossal Treasure Tree Adam.
+elbaf|Elbaph|2180|560|44|4f9a45|2f7a3a|e8f0f8|c9a070|.08|0|The land of the giants, grown around the colossal Treasure Tree Adam.
 lodestar|Lodestar Island|2350|590|12|8a8f98|6a6f78|555a66|ffffff|0|0|The last island a Log Pose can point to.
 laugh|Laugh Tale|2290|690|18|22283a|1a2030|141826|000000|0|0|The final island. Only the Roger Pirates have reached it, and no Log Pose points here. Its position on this map is a guess.
 lvneel|Lvneel|1500|150|22|8fd05a|5aa845|3c7a3a|4d7fc9|.2|0|North Blue kingdom, home of Mont Blanc Noland.
