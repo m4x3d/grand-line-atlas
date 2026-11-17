@@ -5,7 +5,7 @@ import { initGPU, OFF } from './gpu.js'
 import { initGL } from './gl.js'
 
 const $ = s => document.querySelector(s)
-const cv = $('canvas'), panel = $('#panel'), when = $('#when')
+const cv = $('canvas'), panel = $('#panel'), card = $('#card'), when = $('#when')
 const atlas = makeAtlas(CAST)
 const gpu = await initGPU(cv, atlas) ?? initGL(cv, atlas)   // WebGPU first, WebGL2 if there is no adapter
 if (!gpu) { $('#nogpu').hidden = false; throw new Error('no WebGPU or WebGL2') }
@@ -96,7 +96,7 @@ function status(c) {
 
 function flyTo(x, y, z) {
   // keep the target clear of the panel: beside it on desktop, above it on mobile where it sits at the bottom
-  const wide = innerWidth > 760, below = wide ? 0 : (innerHeight - panel.getBoundingClientRect().top) / 2
+  const wide = innerWidth > 760, below = wide ? 0 : (innerHeight - card.getBoundingClientRect().top) / 2
   Object.assign(tgt, { x: near(x) + (wide ? 165 / S / z / 2 : 0), y: y + below / S / z / 2, z })
 }
 // Gold ticks above the slider: every stop on the timeline that involves the selected island or character
@@ -110,7 +110,7 @@ function showArc() {
   const a = ARCS[arc]
   panel.innerHTML = `<h2>${a.name}</h2><div class="dim">${when_(a)} · ${a.isl.name}</div><p>${a.text}</p>
     <h3>Characters in this arc</h3>${CAST.filter(c => inArc(c, arc)).map(who).join('')}`
-  panel.scrollTop = 0
+  card.scrollTop = 0
 }
 function showChar(c) {
   sel = c; selIsl = null
@@ -120,7 +120,7 @@ function showChar(c) {
     ${c.fruit ? `<h3>Devil Fruit</h3><p>${c.fruit}</p>` : ''}
     <h3>Where</h3>${status(c)}
     <h3>Appears in</h3>${ARCS.filter(a => inArc(c, a.i)).map(chip).join('')}${back()}`
-  panel.scrollTop = 0
+  card.scrollTop = 0
 }
 function showIsland(s) {
   sel = null; selIsl = s
@@ -133,7 +133,7 @@ function showIsland(s) {
   panel.innerHTML = `<h2>${s.name}</h2>${wiki(s)}${s.note ? `<p>${s.note}</p>` : ''}
     <h3>On the timeline</h3>${events.map(row).join('') || '<p class="dim">Nothing in the story is shown here.</p>'}
     <h3>Here now</h3>${here || '<p class="dim">Nobody at this point of the story.</p>'}${back()}`
-  panel.scrollTop = 0
+  card.scrollTop = 0
 }
 function focusChar(c) {
   const p = placed.find(p => p.c === c)
@@ -264,6 +264,10 @@ cv.addEventListener('wheel', e => {
   zoomAt(m, m, Math.exp(-e.deltaY * .0015))   // zoom towards the cursor
 }, { passive: false })
 
+$('#fold').onclick = e => {
+  const min = card.classList.toggle('min')
+  Object.assign(e.target, { textContent: min ? '+' : '–', ariaLabel: `${min ? 'Expand' : 'Shrink'} the info card`, ariaExpanded: !min })
+}
 panel.onclick = $('#marks').onclick = e => {
   const b = e.target.closest('button')
   if (!b) return

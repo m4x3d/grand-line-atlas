@@ -43,6 +43,10 @@
   aside h2 { margin: 0 0 2px; font-size: 16px; color: var(--gold); }
   aside h3 { margin: 14px 0 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9fb4d6; }
   aside p { margin: 6px 0; }
+  #fold { position: sticky; top: 0; float: right; margin: -4px -4px 0 6px; width: 24px; font: inherit; color: var(--paper); background: #132a4f; border: 2px solid var(--line); cursor: pointer; }
+  #fold:hover { border-color: var(--gold); color: var(--gold); }
+  aside.min { bottom: auto; }   /* shrunk: only the card's title stays */
+  .min #panel > :not(h2) { display: none; }
   .dim { color: #9fb4d6; }
   .note { padding-left: 8px; border-left: 3px solid var(--gold); }
   .note.off { border-color: #d8322c; }
@@ -56,11 +60,15 @@
   #nogpu { inset: 0; display: grid; place-content: center; text-align: center; padding: 24px; }
   @media (max-width: 760px) {
     aside { top: auto; left: 12px; width: auto; bottom: 124px; max-height: 38vh; }
-    h1 { display: none; }
+    header { right: 12px; }   /* search across the full width, the name only while it fits */
+    header input[type=search] { flex: 1; min-width: 0; width: auto; }
+    h1 { font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
+    aside.min { bottom: 124px; }
     footer { flex-wrap: wrap; }   /* timeline on its own row under the buttons and the arc name */
     #arc { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #track { order: 1; flex-basis: 100%; }
   }
+  @media (max-width: 360px) { h1 { display: none; } }
 </style>
 
 <canvas></canvas>
@@ -70,7 +78,7 @@
   <button id="clear" aria-label="Clear search">✕</button>
   <datalist id="names"></datalist>
 </header>
-<aside class="box" id="panel" aria-live="polite"></aside>
+<aside class="box" id="card"><button id="fold" aria-label="Shrink the info card" aria-expanded="true">–</button><div id="panel" aria-live="polite"></div></aside>
 <footer class="box">
   <button id="prev" aria-label="Previous arc">&lt;</button>
   <button id="next" aria-label="Next arc">&gt;</button>
