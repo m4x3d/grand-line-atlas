@@ -52,13 +52,19 @@ function place() {
     groups.get(isl).push(c)
   }
   placed = []
+  // a staggered grid; k = 2 for giants, who need twice the room
+  const lay = (cast, k) => {
+    const cols = Math.ceil(Math.sqrt(cast.length * 1.6))
+    return cast.map((c, i) => ({ c, row: i / cols | 0, dx: (i % cols - (cols - 1) / 2 + ((i / cols | 0) & 1) * .5 - .25) * 5.4 * k }))
+  }
   for (const [isl, cast] of groups) {
-    const cols = Math.ceil(Math.sqrt(cast.length * 1.6)), rows = Math.ceil(cast.length / cols)
-    const top = isl.y + 3 - (isl.special === 4 ? isl.r * .5 : 0)   // on deck, on the elephant's back
-    cast.forEach((c, i) => {
-      const row = i / cols | 0
-      placed.push({ c, isl, x: isl.x + (i % cols - (cols - 1) / 2 + (row & 1) * .5 - .25) * 5.4, y: top + (row - (rows - 1) / 2) * 6.8 })
-    })
+    const mid = isl.y + 3 - (isl.special === 4 ? isl.r * .5 : 0)   // on deck, on the elephant's back
+    const small = lay(cast.filter(c => !c.giant), 1), big = lay(cast.filter(c => c.giant), 2)
+    const rows = small.length && small.at(-1).row + 1, bigRows = big.length && big.at(-1).row + 1
+    for (const p of small) placed.push({ c: p.c, isl, x: isl.x + p.dx, y: mid + (p.row - (rows - 1) / 2) * 6.8 })
+    // giants get their own rows behind everybody else, so they never hide anyone
+    const back = rows ? mid - (rows - 1) / 2 * 6.8 - 6.8 : mid + (bigRows - 1) / 2 * 13.6   // feet of the front giant row
+    for (const p of big) placed.push({ c: p.c, isl, x: isl.x + p.dx, y: back - (bigRows - 1 - p.row) * 13.6 })
   }
   placed.sort((a, b) => a.y - b.y)
   const sailed = ARCS.slice(0, arc + 1)
