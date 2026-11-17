@@ -247,7 +247,7 @@ panel.onclick = $('#marks').onclick = e => {
     else if (s) focusIsland(s)
   }
   else if (b.dataset.c) focusChar(CAST[b.dataset.c])
-  else showArc()
+  else setArc(arc)   // "Back to …": the stop's card and its island again
 }
 $('#prev').onclick = () => setArc(arc - 1)
 $('#next').onclick = () => setArc(arc + 1)
