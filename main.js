@@ -39,6 +39,8 @@ U.set(TARAI, OFF.tarai)
 // S = screen px per sprite pixel. The terrain is drawn at half that resolution, cam.z is in terrain px per world unit.
 let arc = 0, sailedLegs = 0, placed = [], hits = [], hover = null, sel = null, ship = null, n = 0, W = 0, H = 0, S = 1, drag = null, mouse = [-9, -9]
 const cam = { x: 640, y: 500, z: .3 }, tgt = { ...cam }
+// zoomed out at most to one lap of the globe and to the height from the northernmost to the southernmost Blue island
+const minZ = () => Math.max(W / 2 / LAP, H / 2 / 1150)   // y 25-1175: the islands span 74-1038, plus room for labels and the timeline
 const near = x => cam.x + lap(x - cam.x)         // the copy of a world x that is closest to the camera
 
 // Luffy's route from Dawn Island as dotted legs. Each leg is drawn like a pen stroke: the heading sways in a gentle wave,
@@ -231,9 +233,12 @@ function frame(ms) {
   S = Math.max(1, Math.round(innerWidth / 1280))
   const w = 2 * Math.ceil(innerWidth / S / 2), h = 2 * Math.ceil(innerHeight / S / 2)
   if (w !== W || h !== H) { cv.width = W = w; cv.height = H = h }
-  tgt.z = clamp(tgt.z, W / 2 / LAP, 9)           // never show more than one lap of the globe
-  tgt.y = clamp(tgt.y, 0, 1200)
+  tgt.z = clamp(tgt.z, minZ(), 9)
+  // keep the view between the same top and bottom edges as the furthest zoom, so the Blues never drift to the middle
+  const keepY = (y, z) => clamp(y, 25 + H / 4 / z, 1175 - H / 4 / z)
+  tgt.y = keepY(tgt.y, tgt.z)
   for (const k of 'xyz') cam[k] += (tgt[k] - cam[k]) * .12
+  cam.y = keepY(cam.y, cam.z)
   const z = cam.z, z2 = z * 2
   const sx = x => Math.floor(near(x) * z2) - Math.floor(cam.x * z2) + W / 2
   const sy = y => Math.floor(y * z2) - Math.floor(cam.y * z2) + H / 2
@@ -279,7 +284,7 @@ const toWorld = ([mx, my]) => [cam.x + (mx - W / 2) / cam.z / 2, cam.y + (my - H
 // zoom by f, keeping the world point under screen point `from` under screen point `to`
 function zoomAt(from, to, f) {
   const [wx, wy] = toWorld(from)
-  tgt.z = clamp(tgt.z * f, W / 2 / LAP, 9)
+  tgt.z = clamp(tgt.z * f, minZ(), 9)
   tgt.x = wx - (to[0] - W / 2) / tgt.z / 2; tgt.y = wy - (to[1] - H / 2) / tgt.z / 2
 }
 const touches = new Map()   // pointers currently down, for pinch zoom
