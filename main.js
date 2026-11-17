@@ -77,6 +77,8 @@ const who = c => {
 }
 const chip = a => `<button class="chip${a.i === arc ? ' on' : ''}${a.past ? ' old' : ''}" data-arc="${a.i}">${a.name}</button>`
 const when_ = a => a.past ? `<span class="tag">Flashback</span> ${a.ch}` : `${a.saga} Saga · chapters ${a.ch}`
+const WIKI = { Road: 'Road (Giant)', Sphinx: 'Sphinx (Location)' }   // where the wiki title is not just the name without "Saint"
+const wiki = x => `<a class="wiki" target="_blank" rel="noopener" href="https://onepiece.fandom.com/wiki/${encodeURI((WIKI[x.name] ?? x.name.replace(/^Saint /, '')).replaceAll(' ', '_'))}">One Piece Wiki ↗</a>`
 const back = () => `<h3>Now</h3><button class="chip">Back to ${ARCS[arc].name}</button>`
 
 // Why a character is or is not on the map right now, and the nearest chapters where they can be found
@@ -113,7 +115,7 @@ function showChar(c) {
   sel = c; selIsl = null
   marks(ARCS.filter(a => inArc(c, a.i)).map(a => a.i))
   panel.innerHTML = `<i class="spr big" style="${pos(c)}"></i><h2>${c.name}</h2>
-    ${c.epithet ? `<div class="dim">"${c.epithet}"</div>` : ''}<p>${c.crew}</p>
+    ${c.epithet ? `<div class="dim">"${c.epithet}"</div>` : ''}${wiki(c)}<p>${c.crew}</p>
     ${c.fruit ? `<h3>Devil Fruit</h3><p>${c.fruit}</p>` : ''}
     <h3>Where</h3>${status(c)}
     <h3>Appears in</h3>${ARCS.filter(a => inArc(c, a.i)).map(chip).join('')}${back()}`
@@ -127,7 +129,7 @@ function showIsland(s) {
   const row = ({ a, cast }) => `<div class="ev">${chip(a)}<span class="dim">${a.past ? a.ch : `ch. ${a.ch}`}</span>
     <div class="dim">${cast.slice(0, 4).map(c => c.name).join(', ')}${cast.length > 4 ? ` +${cast.length - 4}` : ''}</div></div>`
   const here = placed.filter(p => p.isl === s).map(p => who(p.c)).join('')
-  panel.innerHTML = `<h2>${s.name}</h2>${s.note ? `<p>${s.note}</p>` : ''}
+  panel.innerHTML = `<h2>${s.name}</h2>${wiki(s)}${s.note ? `<p>${s.note}</p>` : ''}
     <h3>On the timeline</h3>${events.map(row).join('') || '<p class="dim">Nothing in the story is shown here.</p>'}
     <h3>Here now</h3>${here || '<p class="dim">Nobody at this point of the story.</p>'}${back()}`
   panel.scrollTop = 0
@@ -259,6 +261,7 @@ $('#era-now').onclick = () => setArc(SAIL)
 when.oninput = () => setArc(+when.value)
 const FIND = [...CAST, ...ISLANDS]   // characters first, so a shared name finds the person
 $('#names').innerHTML = FIND.map(x => `<option value="${x.name}">`).join('')
+$('#clear').onclick = () => { $('#find').value = ''; $('#find').focus() }
 $('#find').onchange = e => {
   const q = e.target.value.trim().toLowerCase()
   const hit = q && (FIND.find(x => x.name.toLowerCase() === q) ?? FIND.find(x => x.name.toLowerCase().includes(q)))

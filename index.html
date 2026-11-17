@@ -13,7 +13,12 @@
   .box { position: fixed; background: #0b1830e6; border: 2px solid var(--line); box-shadow: 4px 4px 0 #0008; }
   header { top: 12px; left: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; }
   h1 { margin: 0; font-size: 14px; letter-spacing: 2px; color: var(--gold); }
-  input[type=search] { width: 230px; padding: 4px 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); }
+  input[type=search] { width: 230px; padding: 4px 24px 4px 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); }
+  input[type=search]::-webkit-search-cancel-button { display: none; }
+  #clear { margin-left: -32px; width: 22px; font: inherit; color: var(--paper); background: none; border: 0; cursor: pointer; }
+  #clear:hover { color: var(--gold); }
+  #find:placeholder-shown + #clear { visibility: hidden; }
+  .wiki { color: #9fb4d6; font-size: 11px; } .wiki:hover { color: var(--gold); }
   footer { left: 12px; right: 12px; bottom: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; }
   footer button, .chip { font: inherit; color: var(--paper); background: #132a4f; border: 2px solid var(--line); padding: 2px 8px; cursor: pointer; }
   footer button:hover, .chip:hover, .who:hover { border-color: var(--gold); color: var(--gold); }
@@ -59,6 +64,7 @@
 <header class="box">
   <h1>GRAND LINE ATLAS</h1>
   <input type="search" id="find" list="names" placeholder="Find a character or island" aria-label="Find a character or island">
+  <button id="clear" aria-label="Clear search">✕</button>
   <datalist id="names"></datalist>
 </header>
 <aside class="box" id="panel" aria-live="polite"></aside>
