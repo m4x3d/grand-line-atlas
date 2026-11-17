@@ -19,7 +19,8 @@ Opening `index.html` straight from disk does not work, because browsers block ES
 
 - **World map** with the four Blues, both Red Line crossings, the Calm Belts, Paradise and the New World. The map wraps around horizontally, so you can keep dragging past either Red Line.
 - **Timeline** with 53 stops: 19 flashbacks from the Void Century onward, then the voyage from Romance Dawn to Elbaph, including the timeskip. Flashbacks are marked in sepia on the timeline and turn the whole map sepia.
-- **Characters** stand on the island where the story last saw them at the selected stop. Click one for epithet, affiliation, Devil Fruit, where they are right now and every stop they appear in.
+- **Characters** stand on the island where the story last saw them at the selected stop. Click one for epithet, affiliation, Devil Fruit, where they are right now and every stop they appear in. A switch on the card adds a pink dotted trail of the trips the story has shown them making so far.
+- **Links** keep the stop and the selection, for example `#q/roronoa-zoro` opens Zoro at Dressrosa.
 - **Islands** show a description, every stop that involves them and who is there now. The stops also appear as ticks above the timeline.
 - **Search** finds characters and islands.
 - The dotted line is Luffy's route so far. The Going Merry or Thousand Sunny waits at the crew's current island and sails each new leg as you step forward. ▶ plays the story stop by stop.

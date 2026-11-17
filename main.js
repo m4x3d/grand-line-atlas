@@ -1,5 +1,5 @@
 import { ARCS, ISLANDS, CAST, CODES, LAP, SAIL, TARAI, inArc, where, locate, known, setLimit, LIMIT } from './data.js'
-import { makeAtlas, charRect, glyph, SHIP, DOT } from './sprites.js'
+import { makeAtlas, charRect, glyph, SHIP, DOT, TRAIL } from './sprites.js'
 import { DECAL } from './decals.js'
 import { initGPU, OFF } from './gpu.js'
 import { initGL } from './gl.js'
@@ -87,32 +87,94 @@ function leg(a, b, k, before) {   // before: earlier legs between the same two i
   }
   const dist = (p, s) => Math.hypot(lap(p[0] - s.x), p[1] - s.y)
   const free = p => dist(p, a) > a.ext * 1.3 && dist(p, b) > b.ext * 1.3   // away from both ends
+  const band = Math.max(135, ...[a, b].map(s => Math.abs(s.y - 600) + 10))   // the Grand Line, or wider when an end lies outside it
   const ring = [a, b].every(s => ['enies', 'impel', 'marineford'].includes(s.id))   // a ride on the Tarai Current itself
   const cross = (p, q, o, r) => {   // do segments pq and or intersect?
     const d = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
     return d(p, q, o) * d(p, q, r) < 0 && d(o, r, p) * d(o, r, q) < 0
   }
   const apart = pts => before.every(o => pts.every((p, i) => i === 0 || !free(p) || o.every((q, j) => j === 0 || !cross(pts[i - 1], p, o[j - 1], q))))
-  const clear = pts => pts.every(p => ISLANDS.every(s => s === a || s === b || dist(p, s) > s.ext * 1.25 + 3) &&
-    (ring || !free(p) || Math.hypot(lap(p[0] - TARAI[0]), p[1] - TARAI[1]) > TARAI[2] - 2)) &&   // keep out of the Tarai Current
-    apart(pts)   // and never cross the way there
+  const open = p => ISLANDS.every(s => s === a || s === b || dist(p, s) > s.ext * 1.25 + 3) &&
+    (ring || !free(p) || Math.hypot(lap(p[0] - TARAI[0]), p[1] - TARAI[1]) > TARAI[2] - 2) &&   // keep out of the Tarai Current
+    Math.abs(p[1] - 600) < band   // no ship but the Navy's crosses a Calm Belt
+  const clear = pts => pts.every(open) && apart(pts)   // and never cross the way there
+  const detour = () => {   // no stroke fits: search the open water on a grid, pull the path straight and round its turns
+    const C = 6, dx = lap(b.x - a.x), x0 = Math.min(0, dx) - 60, W = Math.ceil((Math.abs(dx) + 120) / C), H = Math.ceil(2 * band / C)
+    const at = n => [a.x + x0 + (n % W + .5) * C, 600 - band + (Math.floor(n / W) + .5) * C]
+    const cell = (x, y) => Math.floor((y - 600 + band) / C) * W + Math.floor((x - a.x - x0) / C)
+    const end = [a.x + dx, b.y], goal = cell(...end), from = new Int32Array(W * H).fill(-1), queue = [cell(a.x, a.y)]
+    from[queue[0]] = queue[0]
+    for (let q = 0; q < queue.length && from[goal] < 0; q++) {
+      const n = queue[q], i = n % W
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const m = n + dj * W + di
+        if (i + di >= 0 && i + di < W && m >= 0 && m < W * H && from[m] < 0 && open(at(m))) from[m] = n, queue.push(m)
+      }
+    }
+    if (from[goal] < 0) return null
+    const path = [goal]
+    while (path[0] !== from[path[0]]) path.unshift(from[path[0]])
+    const seen = (p, q) => { const l = Math.hypot(q[0] - p[0], q[1] - p[1]); for (let t = 0; t < l; t += 2) if (!open([p[0] + (q[0] - p[0]) * t / l, p[1] + (q[1] - p[1]) * t / l])) return false; return true }
+    const turns = [[a.x, a.y]]
+    path.slice(1, -1).map(at).concat([end]).forEach((p, i, all) => { if (i && !seen(turns.at(-1), p)) turns.push(all[i - 1]) })
+    turns.push(end)
+    let pts = turns.slice(1).flatMap((q, i) => { const p = turns[i], l = Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1])); return Array.from({ length: l }, (_, t) => [p[0] + (q[0] - p[0]) * t / l, p[1] + (q[1] - p[1]) * t / l]) }).concat([end])
+    for (let n = 0; n < 12; n++) pts = blur(pts)
+    return pts
+  }
   const flip = k % 2 ? 1 : -1, tries = []
   for (const amp of [.35, .5, .2, .7, 1, 1.3, 1.7, 2.1]) for (const phase of [...before.length ? [0, Math.PI, Math.PI / 2] : [Math.PI / 2, 0, Math.PI], Math.PI / 4, -Math.PI / 4, Math.PI * .75, -Math.PI * .75]) for (const at of [.35, .55, .45]) tries.push([amp * flip, phase, at], [-amp * flip, phase, at])
-  const pts = tries.reduce((hit, t) => hit ?? (p => clear(p) ? p : null)(stroke(...t)), null) ?? (console.warn('route fallback', a.id, b.id), stroke(.35 * flip, Math.PI / 2, .4))
-  return pts
+  const first = ok => tries.reduce((hit, t) => hit ?? (p => ok(p) ? p : null)(stroke(...t)), null)
+  return first(clear) ?? detour() ?? (console.warn('route fallback', a.id, b.id), stroke(.35 * flip, Math.PI / 2, .4))
 }
 const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x)
 const blur = pts => pts.map((p, i) => i < 4 || i > pts.length - 5 ? p : [0, 1].map(c => pts.slice(i - 4, i + 5).reduce((t, q) => t + q[c], 0) / 9))
-const LEGS = []
-STOPS.slice(1).forEach((b, k) => {
-  const a = STOPS[k], before = LEGS.filter((_, i) => [STOPS[i], STOPS[i + 1]].every(s => s === a || s === b))
-  if (a === b) return LEGS.push([])
-  const hops = [a, ...(VIA[`${a.id} ${b.id}`] ?? []).map(([x, y]) => ({ x, y, ext: 0 })), b]
-  let pts = hops.slice(1).flatMap((h, i) => leg(hops[i], h, k + i, before).slice(i ? 1 : 0))
-  for (let n = 0; n < (hops.length > 2 ? 6 : 0); n++) pts = blur(pts)   // round off the turn at a waypoint
-  LEGS.push(pts.map(p => [...p, ISLANDS.some(s => Math.hypot(lap(p[0] - s.x), p[1] - s.y) < s.r * 1.1)]))
-})
+// the legs between consecutive islands of a list, for Luffy's route and for a character's journey alike
+function legs(stops) {
+  const out = []
+  stops.slice(1).forEach((b, k) => {
+    const a = stops[k], before = out.filter((_, i) => [stops[i], stops[i + 1]].every(s => s === a || s === b))
+    if (a === b) return out.push([])
+    const hops = [a, ...(VIA[`${a.id} ${b.id}`] ?? []).map(([x, y]) => ({ x, y, ext: 0 })), b]
+    let pts = hops.slice(1).flatMap((h, i) => leg(hops[i], h, k + i, before).slice(i ? 1 : 0))
+    for (let n = 0; n < (hops.length > 2 ? 6 : 0); n++) pts = blur(pts)   // round off the turn at a waypoint
+    out.push(pts.map(p => [...p, ISLANDS.some(s => Math.hypot(lap(p[0] - s.x), p[1] - s.y) < s.r * 1.1)]))
+  })
+  return out
+}
+const LEGS = legs(STOPS)
 const LEN = LEGS.map(pts => pts.reduce((t, p, i) => i ? t + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0))
+// A selected character's journey: only trips the story actually shows. A leg is drawn when they appear on two islands in
+// back-to-back stops (flashbacks: in the same year), so years of unknown travel in between stay blank. Each leg is tagged
+// with the stop it arrives at, so the trail grows with the timeline.
+const UNSEEN = ['Bartholomew Kuma hi', 'Shanks tu', 'Shanks uv', 'Shanks vw', 'Benn Beckman vw', 'Yasopp vw', 'Caribou uv', 'Morgans st']   // back to back, but never shown travelling
+const ALSO = {   // direct trips across stops the character sits out, keyed by the stops they leave and reach
+  '15': 'Buggy,Mohji,Cabaji',                                        // chasing Luffy to Loguetown
+  '5a': 'Smoker,Tashigi',                                            // chasing Luffy to Alabasta
+  '7a': 'Nico Robin,Igaram', '8a': 'Galdino',                        // back to Alabasta
+  'ak': 'Crocodile,Galdino,Bentham,Daz Bonez',                       // arrested in Alabasta
+  'ag': 'Portgas D. Ace', 'gk': 'Portgas D. Ace',                    // chasing Blackbeard, then handed to the Navy
+  'hl': 'Gecko Moria', 'il': 'Bartholomew Kuma,Trafalgar D. Water Law,Borsalino,Sentomaru',   // to the war
+  'hm': 'Perona', 'im': 'Silvers Rayleigh', 'jm': 'Nico Robin', 'mo': 'Jinbe',
+  'at': 'Nefertari Vivi,Nefertari Cobra,Igaram', '9t': 'Dalton', 'ot': 'Neptune,Shirahoshi,Fukaboshi',   // to the Levely
+  'qt': 'Issho,Sabo,Rebecca,Viola,Riku Doldo III,Leo,Donquixote Doflamingo',
+  'ru': "Roronoa Zoro,Usopp,Nico Robin,Franky,Trafalgar D. Water Law,Kin'emon,Kozuki Momonosuke,Kurozumi Kanjuro,Inuarashi,Nekomamushi,Wanda,Raizo,Jack",   // to Wano
+  'su': 'Monkey D. Luffy,Nami,Sanji,Tony Tony Chopper,Brook,Jinbe,Carrot,Charlotte Linlin,Charlotte Perospero',
+  'tv': 'Bartholomew Kuma,Saint Jaygarcia Saturn,Saint Marcus Mars,Saint Topman Warcury,Saint Ethanbaron V. Nusjuro,Saint Shepherd Ju Peter',
+}
+const journeys = new Map()
+let trail = false   // a character's journey, switched on from their card
+function journey(c) {
+  const key = `${c.id} ${LIMIT}`
+  if (!journeys.has(key)) {
+    const seen = ARCS.filter(a => inArc(c, a.i)).map(a => ({ i: a.i, isl: where(c, a.i) }))
+    const year = i => ARCS[i].ch.split(',')[0]
+    const trips = seen.slice(1).map((v, j) => [seen[j], v]).filter(([u, v]) => u.isl !== v.isl && (v.i === u.i + 1 || ALSO[CODES[u.i] + CODES[v.i]]?.split(',').includes(c.name)) &&
+      (u.i < SAIL ? v.i < SAIL && year(u.i) === year(v.i) : true) && !UNSEEN.includes(`${c.name} ${CODES[u.i]}${CODES[v.i]}`))
+    journeys.set(key, trips.map(([u, v]) => ({ pts: legs([u.isl, v.isl])[0], arc: v.i })))
+  }
+  return journeys.get(key)
+}
 const along = (pts, d) => {   // the point d along a leg, and which way it heads
   for (let j = 1; j < pts.length; j++) {
     const [x0, y0] = pts[j - 1], [x1, y1] = pts[j], l = Math.hypot(x1 - x0, y1 - y0)
@@ -189,8 +251,11 @@ let selIsl = null
 function marks(stops) {
   $('#marks').innerHTML = stops.map(i => `<button data-arc="${i}" title="${ARCS[i].name}" style="left:${K.indexOf(i) / (K.length - 1) * 100}%"></button>`).join('')
 }
+const slug = name => name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+const link = x => history.replaceState(null, '', `#${CODES[arc]}${x ? '/' + slug(x.name) : ''}`)   // e.g. #q/roronoa-zoro
 function showArc() {
   sel = selIsl = null
+  link()
   marks([])
   const a = ARCS[arc]
   panel.innerHTML = `<h2>${a.name}</h2><div class="dim">${when_(a)} · ${a.isl.name}</div><p>${a.text}</p>
@@ -202,16 +267,19 @@ function showArc() {
 }
 function showChar(c) {
   sel = c; selIsl = null
+  link(c)
   marks(ARCS.filter(a => inArc(c, a.i)).map(a => a.i))
   panel.innerHTML = `<i class="spr big" style="${pos(c)}"></i><h2>${c.name}</h2>
     ${c.epithet ? `<div class="dim">"${c.epithet}"</div>` : ''}${wiki(c)}<p>${LIMIT < Infinity ? c.crew.split(', later')[0] : c.crew}</p>
     ${c.fruit ? `<h3>Devil Fruit</h3><p>${c.fruit}</p>` : ''}
     <h3>Where</h3>${status(c)}
+    ${journey(c).length ? `<label class="dim"><input type="checkbox" id="trail"${trail ? ' checked' : ''}> show their journey on the map</label>` : ''}
     <h3>Appears in</h3>${ARCS.filter(a => inArc(c, a.i)).map(chip).join('')}${back()}`
   card.scrollTop = 0
 }
 function showIsland(s) {
   sel = null; selIsl = s
+  link(s)
   // everything that happens here: arcs set on the island, and arcs where somebody is shown here while the story is elsewhere
   const events = ARCS.map(a => ({ a, cast: CAST.filter(c => inArc(c, a.i) && where(c, a.i) === s) })).filter(e => e.a.isl === s || e.cast.length)
   marks(events.map(e => e.a.i))
@@ -252,7 +320,6 @@ function setArc(i, fly = true) {
   when.value = K.indexOf(arc)
   $('#arc').innerHTML = `<b>${a.name}</b> <span class="dim">${a.past ? a.ch : `${a.saga} Saga · ch. ${a.ch}`}</span>`
   document.body.classList.toggle('past', a.past)   // sepia map and timeline while in a flashback
-  history.replaceState(null, '', '#' + CODES[arc])
   place()
   showArc()
   // one leg further and the ship is aboard, from where it waited to where it is now: it sails while the camera shows the
@@ -293,18 +360,21 @@ function frame(ms) {
   // the route sailed so far as dots that drift forward, newest leg in gold
   const gap = 6 / z, drift = ms / 1000 * .5 % 1 * gap
   const p = voyage ? Math.min(1, (performance.now() - voyage.t0) / voyage.ms) : 1, e = ease(p)
-  LEGS.slice(0, sailedLegs).forEach((pts, i) => {
+  const dots = (pts, rect, tint, end = Infinity) => {   // end: how far along the leg to draw
     let at = drift, walked = 0
-    const end = voyage?.leg === i ? e * LEN[i] : Infinity   // drawn only as far as the ship has sailed
     for (let j = 1; j < pts.length; j++) {
       const [x0, y0, hid] = pts[j - 1], [x1, y1] = pts[j], d = Math.hypot(x1 - x0, y1 - y0)
       for (; at < d && walked + at < end; at += gap) {
         const x = x0 + (x1 - x0) * at / d, y = y0 + (y1 - y0) * at / d
-        if (!hid && Math.abs(lap(x - cam.x)) * z2 < W / 2 + 3 && Math.abs(y - cam.y) * z2 < H / 2 + 3) push(x, y, -1, -1, DOT, 1, -1, i === sailedLegs - 1 ? 1 : 0)
+        if (!hid && Math.abs(lap(x - cam.x)) * z2 < W / 2 + 3 && Math.abs(y - cam.y) * z2 < H / 2 + 3) push(x, y, -1, -1, rect, 1, -1, tint)
       }
       at -= d; walked += d
     }
-  })
+  }
+  // the selected character's journey up to now, under the route
+  if (sel && trail) for (const l of journey(sel)) if (l.arc <= arc) dots(l.pts, TRAIL, 0)
+  // newest leg drawn only as far as the ship has sailed
+  LEGS.slice(0, sailedLegs).forEach((pts, i) => dots(pts, DOT, i === sailedLegs - 1 ? 1 : 0, voyage?.leg === i ? e * LEN[i] : Infinity))
   if (z < 1.1) for (const [name, x, y] of SEAS) text(name, x, y)
   const cur = ARCS[arc].isl
   for (const s of ISLANDS) if (seenIsl(s) && (z >= .75 || s === cur)) text(s.name, s.x, s.y + s.ext + 3, 0, s === cur ? 1 : 0)
@@ -399,7 +469,7 @@ $('#fold').onclick = e => {
   const min = card.classList.toggle('min')
   Object.assign(e.target, { textContent: min ? '+' : '–', ariaLabel: `${min ? 'Expand' : 'Shrink'} the info card`, ariaExpanded: !min })
 }
-panel.onchange = e => { if (e.target.id.startsWith('upto')) { guard(+e.target.value); setArc(arc, false) } }
+panel.onchange = e => { if (e.target.id === 'trail') trail = e.target.checked; if (e.target.id.startsWith('upto')) { guard(+e.target.value); setArc(arc, false) } }
 panel.onclick = $('#marks').onclick = e => {
   const b = e.target.closest('button')
   if (!b) return
@@ -450,5 +520,13 @@ onkeydown = e => {
 let saved = 0
 try { saved = +localStorage.getItem('upto') } catch {}
 guard(saved)
-setArc(location.hash[1] && CODES.includes(location.hash[1]) ? CODES.indexOf(location.hash[1]) : SAIL)
+// open what a link points at: '#q' a stop, '#q/roronoa-zoro' also a character or island there
+function follow() {
+  const [code, name] = decodeURIComponent(location.hash.slice(1)).split('/')
+  setArc(code && CODES.includes(code) ? CODES.indexOf(code) : SAIL)
+  const hit = name && FIND().find(x => slug(x.name) === name)
+  if (hit) hit.look ? focusChar(hit) : focusIsland(hit)
+}
+onhashchange = follow
+follow()
 requestAnimationFrame(frame)
