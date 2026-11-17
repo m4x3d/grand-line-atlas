@@ -47,7 +47,7 @@ wholecake|Whole Cake Island|1740|635|34|f7c8d8|f28cb1|8a5a35|ffffff|.3|0|The hea
 karaibari|Karai Bari Island|1760|500|16|e8cf8a|d9b56a|c99a52|d8322c|.25|0|Headquarters of Cross Guild under a circus tent.
 wano|Wano Country|1900|560|44|8fc85a|5a9a45|6a7a8a|f28cb1|.2|0|A closed country of samurai behind a wall of waterfalls, with Onigashima off its coast.
 winner|Winner Island|2040|500|14|8a8f98|6a6f78|555a66|ef7d21|.05|0|Where Law fought Blackbeard.
-gartel|Gartel Island|2110|450|12|a5d06a|7ab84f|5a9a45|f2c230|.1|0|An island in Shanks' territory, where the Red Hair Pirates caught the Barto Club.
+gartel|Gartel Island|2100|490|12|a5d06a|7ab84f|5a9a45|f2c230|.1|0|An island in Shanks' territory, where the Red Hair Pirates caught the Barto Club.
 egghead|Egghead|2040|645|24|e8f0f8|b8d8f0|ffffff|49c4d8|.3|0|The island of the future and Vegapunk's laboratory, a winter island kept warm by its own technology.
 elbaf|Elbaph|2180|560|44|4f9a45|2f7a3a|e8f0f8|c9a070|.08|0|The land of the giants, grown around the colossal Treasure Tree Adam.
 lodestar|Lodestar Island|2350|590|12|8a8f98|6a6f78|555a66|ffffff|0|0|The last island a Log Pose can point to.
