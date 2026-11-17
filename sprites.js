@@ -19,13 +19,14 @@ export const SHIP = { merry: [0, 448, 64, 64], sunny: [64, 448, 64, 64] }
 
 /* look = skin, hair colour, hair style, hat, hat colour, top, bottom, then extras
    hair: 0 bald 1 short 2 long 3 spiky 4 afro 5 pompadour 6 topknot
-   hat:  1 straw 2 cap 3 top hat 4 crown 5 horns 6 bandana 7 tricorn 8 hood/helmet 9 fluffy
-   extras: c/C/P white/black/pink coat, b beard, m crescent moustache, l long nose, g shades,
-           n blue nose, N red nose, s sword, G giant (drawn at double size by main.js) */
+   hat:  1 straw 2 cap 3 top hat 4 crown 5 horns 6 bandana 7 tricorn 8 hood/helmet 9 fluffy V viking helmet with horns
+   extras: c/C/P/R/O/Y/V/D/B white/black/pink/red/orange/yellow/purple/green/navy coat, b beard, u moustache, m crescent moustache,
+           l long nose, g shades, n blue nose, N red nose, M bandaged mouth, E animal ears, T fish tail for legs, s sword,
+           G giant (drawn at double size by main.js) */
 function person(R, [sk, hc, hs, hat, htc, top, bot, ...ex]) {
   const X = c => ex.includes(c), H = (...a) => R(htc, ...a), D = '#0003'
   R('#0006', 7, 38, 18, 1); R('#0006', 9, 39, 14, 1)
-  const coat = X('c') ? 'w' : X('C') ? 'k' : X('P') ? 'p' : 0
+  const coat = { c: 'w', C: 'k', P: 'p', R: 'r', O: 'o', Y: 'y', V: 'v', D: 'd', B: 'n' }[ex.find(c => 'cCPROYVDB'.includes(c))]
   if (coat) { R(coat, 5, 19, 22, 17); R(D, 5, 19, 2, 17); R(D, 25, 19, 2, 17) }
   R(bot, 10, 28, 12, 3); R(bot, 10, 31, 5, 6); R(bot, 17, 31, 5, 6); R(D, 14, 31, 1, 6); R(D, 17, 31, 1, 6)
   R('k', 9, 36, 6, 2); R('k', 17, 36, 6, 2)
@@ -51,12 +52,22 @@ function person(R, [sk, hc, hs, hat, htc, top, bot, ...ex]) {
   if (hat == 7) { H(9, 0, 14, 4); H(4, 4, 24, 4); H(3, 3, 3, 2); H(26, 3, 3, 2); R('#fff8', 15, 1, 2, 2); R(D, 4, 7, 24, 1) }
   if (hat == 8) { H(9, 1, 14, 1); H(7, 2, 18, 6); H(6, 6, 3, 13); H(23, 6, 3, 13); R(D, 7, 7, 18, 1) }
   if (hat == 9) { H(9, 0, 14, 1); H(7, 1, 18, 6); H(4, 7, 24, 2); for (const [x, y] of [[10, 2], [16, 1], [21, 3]]) R(D, x, y, 2, 2); R(D, 4, 8, 24, 1) }
+  if (hat == 'V') {
+    const hn = '#efe6cc'
+    R(hn, 4, 4, 4, 3); R(hn, 2, 1, 3, 4); R(hn, 2, 0, 2, 1); R(hn, 24, 4, 4, 3); R(hn, 27, 1, 3, 4); R(hn, 28, 0, 2, 1); R(D, 4, 6, 4, 1); R(D, 24, 6, 4, 1)
+    H(11, 0, 10, 1); H(9, 1, 14, 3); H(7, 4, 18, 4); R('#fff5', 11, 1, 6, 1); R(D, 7, 7, 18, 1); H(15, 8, 2, 5)
+    for (const x of [9, 13, 18, 22]) R('#fff6', x, 5, 1, 1)
+  }
+  if (X('T')) { R(bot, 12, 31, 8, 3); R(bot, 13, 34, 6, 2); R(bot, 8, 35, 5, 3); R(bot, 19, 35, 5, 3); R(D, 13, 33, 6, 1) }
+  if (X('E')) { R(sk, 7, 1, 4, 4); R(sk, 8, 0, 2, 1); R(sk, 21, 1, 4, 4); R(sk, 22, 0, 2, 1); R('#e0607090', 8, 2, 2, 2); R('#e0607090', 22, 2, 2, 2) }
   if (X('b')) { R(hc, 10, 16, 12, 4); R(hc, 12, 20, 8, 2) }
+  if (X('u')) { R(hc, 11, 15, 10, 1); R(hc, 10, 16, 3, 2); R(hc, 19, 16, 3, 2) }
   if (X('m')) { R('w', 6, 14, 20, 2); R('w', 5, 11, 2, 4); R('w', 25, 11, 2, 4) }
   if (X('l')) { R(sk, 20, 13, 8, 2); R(D, 20, 14, 8, 1) }
   if (X('g')) { R('k', 10, 11, 12, 3); R('#fff6', 11, 11, 2, 1); R('#fff6', 17, 11, 2, 1) }
   if (X('n')) R('b', 14, 14, 4, 2)
   if (X('N')) R('r', 14, 14, 4, 3)
+  if (X('M')) { R('w', 9, 15, 14, 4); R(D, 9, 16, 14, 1); R(D, 9, 18, 14, 1) }
   if (X('s')) { R('s', 28, 8, 2, 19); R('w', 28, 8, 1, 19); R('y', 27, 26, 4, 2); R('t', 28, 28, 2, 4) }
 }
 

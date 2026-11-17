@@ -19,8 +19,8 @@ for (const c of CAST) {
   assert(c.dies === undefined || c.dies === c.arcs.at(-1), `${c.name}: seen after death`)
   assert(c.look.length >= 7, `${c.name}: look too short`)
   for (const i of [0, 1, 4, 5, 6]) assert(PAL[c.look[i]] || (i === 4 && c.look[i] === '0'), `${c.name}: colour '${c.look[i]}' at ${i}`)
-  assert(/^\d\d$/.test(c.look.slice(2, 4)), `${c.name}: hair/hat must be digits`)
-  assert(/^[cCPbmlgnNsG]*$/.test(c.look.slice(7)), `${c.name}: unknown extra in '${c.look}'`)
+  assert(/^\d[\dV]$/.test(c.look.slice(2, 4)), `${c.name}: hair/hat must be digits`)
+  assert(/^[cCPROYVDBbumlgnNMETsG]*$/.test(c.look.slice(7)), `${c.name}: unknown extra in '${c.look}'`)
 }
 const crew = a => CAST.filter(c => c.join !== undefined && inArc(c, a)).map(c => c.key).join('')
 assert.equal(crew(at('0')), 'LZ')
