@@ -1,7 +1,7 @@
 import WGSL from './shader.js'
 
 // Float offsets into the uniform block (see struct U in shader.js)
-export const OFF = { isl: 8, col: 248, ext: 488, route: 728, tarai: 868 }
+export const OFF = { isl: 8, col: 248, ext: 488, tarai: 728 }
 export const MAX_SPRITES = 4096
 
 export async function initGPU(cv, atlas) {
@@ -14,7 +14,7 @@ export async function initGPU(cv, atlas) {
   const module = dev.createShaderModule({ code: WGSL })
   module.getCompilationInfo().then(i => i.messages.forEach(m => console.error(`wgsl ${m.lineNum}:${m.linePos} ${m.message}`)))
 
-  const U = new Float32Array(872), INST = new Float32Array(12 * MAX_SPRITES)
+  const U = new Float32Array(732), INST = new Float32Array(12 * MAX_SPRITES)
   const ubuf = dev.createBuffer({ size: U.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
   const ibuf = dev.createBuffer({ size: INST.byteLength, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST })
   const tex = dev.createTexture({

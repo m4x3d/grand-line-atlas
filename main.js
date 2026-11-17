@@ -1,5 +1,5 @@
 import { ARCS, ISLANDS, CAST, CODES, LAP, SAIL, TARAI, inArc, where, locate } from './data.js'
-import { makeAtlas, charRect, glyph, SHIP } from './sprites.js'
+import { makeAtlas, charRect, glyph, SHIP, DOT } from './sprites.js'
 import { DECAL } from './decals.js'
 import { initGPU, OFF } from './gpu.js'
 import { initGL } from './gl.js'
@@ -37,9 +37,57 @@ ISLANDS.forEach((s, i) => {
 U.set(TARAI, OFF.tarai)
 
 // S = screen px per sprite pixel. The terrain is drawn at half that resolution, cam.z is in terrain px per world unit.
-let arc = 0, placed = [], hits = [], hover = null, sel = null, ship = null, n = 0, W = 0, H = 0, S = 1, drag = null, mouse = [-9, -9]
+let arc = 0, sailedLegs = 0, placed = [], hits = [], hover = null, sel = null, ship = null, n = 0, W = 0, H = 0, S = 1, drag = null, mouse = [-9, -9]
 const cam = { x: 640, y: 500, z: .3 }, tgt = { ...cam }
 const near = x => cam.x + lap(x - cam.x)         // the copy of a world x that is closest to the camera
+
+// Luffy's route from Dawn Island as dotted legs. Each leg is drawn like a pen stroke: the heading sways in a gentle wave,
+// and on a few legs it turns once all the way round, which curls the line into a round loop. The stroke is then rotated
+// and scaled so it ends on the next island, and the first variant that keeps clear of the islands in between wins.
+// Points are [x, y, hidden under an island].
+const LOOPS = ['longring', 'thriller', 'punk']   // ponytail: hand-picked, the legs into these islands curl once
+const STOPS = [ISLANDS[0], ...ARCS.filter(a => a.only).map(a => a.isl)]
+const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x)
+const VIA = { 'marineford amazon': [[1060, 790]] }   // out of the Tarai Current, through the Calm Belt below Impel Down
+function leg(a, b, k, before) {   // before: earlier legs between the same two islands, not to be crossed
+  const dx = lap(b.x - a.x), dy = b.y - a.y, len = Math.hypot(dx, dy)
+  const m = Math.ceil(len), r = LOOPS.includes(b.id) ? Math.min(8, len * .05) : 0, w = 2 * Math.PI * r / len * 1.15
+  const stroke = (amp, phase, at) => {
+    let x = 0, y = 0
+    const q = [[0, 0]]
+    for (let j = 1; j <= m; j++) {
+      const s = (j - .5) / m, th = amp * Math.sin(2 * Math.PI * s + phase) + (r ? 2 * Math.PI * ease((s - at) / w) : 0)
+      q.push([x += Math.cos(th), y += Math.sin(th)])
+    }
+    const [ex, ey] = q[m], e2 = ex * ex + ey * ey, kx = (dx * ex + dy * ey) / e2, ky = (dy * ex - dx * ey) / e2   // (dx, dy) / end, as complex numbers
+    return q.map(([x, y]) => [a.x + x * kx - y * ky, a.y + x * ky + y * kx])
+  }
+  const dist = (p, s) => Math.hypot(lap(p[0] - s.x), p[1] - s.y)
+  const free = p => dist(p, a) > a.ext * 1.3 && dist(p, b) > b.ext * 1.3   // away from both ends
+  const ring = [a, b].every(s => ['enies', 'impel', 'marineford'].includes(s.id))   // a ride on the Tarai Current itself
+  const cross = (p, q, o, r) => {   // do segments pq and or intersect?
+    const d = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    return d(p, q, o) * d(p, q, r) < 0 && d(o, r, p) * d(o, r, q) < 0
+  }
+  const apart = pts => before.every(o => pts.every((p, i) => i === 0 || !free(p) || o.every((q, j) => j === 0 || !cross(pts[i - 1], p, o[j - 1], q))))
+  const clear = pts => pts.every(p => ISLANDS.every(s => s === a || s === b || dist(p, s) > s.ext * 1.25 + 3) &&
+    (ring || !free(p) || Math.hypot(lap(p[0] - TARAI[0]), p[1] - TARAI[1]) > TARAI[2] - 2)) &&   // keep out of the Tarai Current
+    apart(pts)   // and never cross the way there
+  const flip = k % 2 ? 1 : -1, tries = []
+  for (const amp of [.35, .5, .2, .7, 1, 1.3, 1.7, 2.1]) for (const phase of [...before.length ? [0, Math.PI, Math.PI / 2] : [Math.PI / 2, 0, Math.PI], Math.PI / 4, -Math.PI / 4, Math.PI * .75, -Math.PI * .75]) for (const at of [.35, .55, .45]) tries.push([amp * flip, phase, at], [-amp * flip, phase, at])
+  const pts = tries.reduce((hit, t) => hit ?? (p => clear(p) ? p : null)(stroke(...t)), null) ?? (console.warn('route fallback', a.id, b.id), stroke(.35 * flip, Math.PI / 2, .4))
+  return pts
+}
+const blur = pts => pts.map((p, i) => i < 4 || i > pts.length - 5 ? p : [0, 1].map(c => pts.slice(i - 4, i + 5).reduce((t, q) => t + q[c], 0) / 9))
+const LEGS = []
+STOPS.slice(1).forEach((b, k) => {
+  const a = STOPS[k], before = LEGS.filter((_, i) => [STOPS[i], STOPS[i + 1]].every(s => s === a || s === b))
+  if (a === b) return LEGS.push([])
+  const hops = [a, ...(VIA[`${a.id} ${b.id}`] ?? []).map(([x, y]) => ({ x, y, ext: 0 })), b]
+  let pts = hops.slice(1).flatMap((h, i) => leg(hops[i], h, k + i, before).slice(i ? 1 : 0))
+  for (let n = 0; n < (hops.length > 2 ? 6 : 0); n++) pts = blur(pts)   // round off the turn at a waypoint
+  LEGS.push(pts.map(p => [...p, ISLANDS.some(s => Math.hypot(lap(p[0] - s.x), p[1] - s.y) < s.r * 1.1)]))
+})
 
 // Every character stands where the story last saw them at the selected point in time.
 function place() {
@@ -67,9 +115,7 @@ function place() {
   }
   placed.sort((a, b) => a.y - b.y)
   const sailed = ARCS.slice(0, arc + 1)
-  const pts = [ISLANDS[0], ...sailed.filter(a => a.only).map(a => a.isl)]   // Luffy's route, from Dawn Island
-  pts.forEach((p, i) => U.set([p.x, p.y], OFF.route + i * 4))
-  U[7] = pts.length
+  sailedLegs = sailed.filter(a => a.only).length
   const a = sailed.findLast(a => a.only && a.only !== 'L')                  // the ship waits while Luffy is alone
   ship = a && { isl: a.isl, rect: a.i < SUNNY ? SHIP.merry : SHIP.sunny }   // nobody has set sail in the past
 }
@@ -193,6 +239,19 @@ function frame(ms) {
   const sy = y => Math.floor(y * z2) - Math.floor(cam.y * z2) + H / 2
 
   n = 0; hits = []
+  // the route sailed so far as dots that drift forward, newest leg in gold
+  const gap = 6 / z, drift = ms / 1000 * .5 % 1 * gap
+  LEGS.slice(0, sailedLegs).forEach((pts, i) => {
+    let at = drift
+    for (let j = 1; j < pts.length; j++) {
+      const [x0, y0, hid] = pts[j - 1], [x1, y1] = pts[j], d = Math.hypot(x1 - x0, y1 - y0)
+      for (; at < d; at += gap) {
+        const x = x0 + (x1 - x0) * at / d, y = y0 + (y1 - y0) * at / d
+        if (!hid && Math.abs(lap(x - cam.x)) * z2 < W / 2 + 3 && Math.abs(y - cam.y) * z2 < H / 2 + 3) push(x, y, -1, -1, DOT, 1, -1, i === sailedLegs - 1 ? 1 : 0)
+      }
+      at -= d
+    }
+  })
   if (z < 1.1) for (const [name, x, y] of SEAS) text(name, x, y)
   const cur = ARCS[arc].isl
   for (const s of ISLANDS) if (z >= .75 || s === cur) text(s.name, s.x, s.y + s.ext + 3, 0, s === cur ? 1 : 0)

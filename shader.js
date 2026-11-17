@@ -1,13 +1,12 @@
-// The whole world (sea, Red Line, islands, route, clouds) is one fragment shader, drawn at half resolution.
+// The whole world (sea, Red Line, islands, clouds) is one fragment shader, drawn at half resolution.
 // Sprites are instanced quads on top at full resolution, so a sprite pixel is half a terrain pixel.
 export default /* wgsl */`
 struct U {
   cam: vec4f,                  // centre x, y, zoom (terrain px per world unit), time
-  res: vec4f,                  // terrain w, h, island count, route point count
+  res: vec4f,                  // terrain w, h, island count
   isl: array<vec4f, 60>,       // x, y, radius, seed
   col: array<vec4f, 60>,       // low, mid, high, speckle as 0xRRGGBB (painted islands: atlas x, y, size)
   ext: array<vec4f, 60>,       // speckle density, special
-  route: array<vec4f, 35>,
   tarai: vec4f,                // centre x, y and radius of the Tarai Current
 };
 @group(0) @binding(0) var<uniform> u: U;
@@ -123,17 +122,6 @@ fn redline(w: vec2f) -> f32 {   // the continent crosses the map every 1200 unit
   let ring = abs(length(tc) - u.tarai.z) * z;
   if (h < 0. && rl < 0. && ring < 1.6 && (ring < .8 || dth > .5) && fract(atan2(tc.y, tc.x) * u.tarai.z * z / 10. - t * 1.5) < .55) {
     col = mix(col, vec3f(.75, .95, 1.), .8);
-  }
-
-  // the route sailed so far, newest leg in gold
-  let n = i32(u.res.w);
-  for (var i = 0; i < n - 1; i++) {
-    let a = u.route[i].xy; let ba = u.route[i + 1].xy - a;
-    var pa = w - a; pa.x = wrap(pa.x - ba.x * .5) + ba.x * .5;
-    let q = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.);
-    if (h < 0. && rl < 0. && length(pa - ba * q) * z < .8 && fract(q * length(ba) * z / 6. - t * .5) < .5) {
-      col = select(vec3f(.96, .93, .85), vec3f(1., .8, .2), i == n - 2);
-    }
   }
 
   // drifting clouds, only on the overview

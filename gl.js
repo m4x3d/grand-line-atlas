@@ -4,7 +4,7 @@ const HEAD = `#version 300 es
 precision highp float;
 `
 const WORLD_FS = HEAD + `
-uniform vec4 U[218];   // cam, res, then isl[60], col[60], ext[60], route[35], tarai
+uniform vec4 U[183];   // cam, res, then isl[60], col[60], ext[60], tarai
 uniform sampler2D atlas;
 out vec4 o;
 float wrap(float d) { return d - 2400. * round(d / 2400.); }
@@ -93,19 +93,10 @@ void main() {
     if (px.a > .5) { col = px.rgb; h = 1.; }
   }
 
-  vec2 tc = vec2(wrap(w.x - U[217].x), w.y - U[217].y);
-  float ring = abs(length(tc) - U[217].z) * z;
-  if (h < 0. && rl < 0. && ring < 1.6 && (ring < .8 || dth > .5) && fract(atan(tc.y, tc.x) * U[217].z * z / 10. - t * 1.5) < .55)
+  vec2 tc = vec2(wrap(w.x - U[182].x), w.y - U[182].y);
+  float ring = abs(length(tc) - U[182].z) * z;
+  if (h < 0. && rl < 0. && ring < 1.6 && (ring < .8 || dth > .5) && fract(atan(tc.y, tc.x) * U[182].z * z / 10. - t * 1.5) < .55)
     col = mix(col, vec3(.75, .95, 1.), .8);
-
-  int n = int(U[1].w);
-  for (int i = 0; i < n - 1; i++) {
-    vec2 a = U[182 + i].xy, ba = U[183 + i].xy - a, pa = w - a;
-    pa.x = wrap(pa.x - ba.x * .5) + ba.x * .5;
-    float q = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.);
-    if (h < 0. && rl < 0. && length(pa - ba * q) * z < .8 && fract(q * length(ba) * z / 6. - t * .5) < .5)
-      col = i == n - 2 ? vec3(1., .8, .2) : vec3(.96, .93, .85);
-  }
 
   float edge = .7 + smoothstep(.45, 1.3, z) * .35;
   if (edge < 1.) {
@@ -156,7 +147,7 @@ export function initGL(cv, atlas) {
   const world = program(WORLD_VS, WORLD_FS), sprites = program(SPRITE_VS, SPRITE_FS)
   const locU = gl.getUniformLocation(world, 'U'), locV = gl.getUniformLocation(sprites, 'V')
 
-  const U = new Float32Array(872), INST = new Float32Array(12 * 4096)
+  const U = new Float32Array(732), INST = new Float32Array(12 * 4096)
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
   gl.bufferData(gl.ARRAY_BUFFER, INST.byteLength, gl.DYNAMIC_DRAW)
   for (let i = 0; i < 3; i++) {

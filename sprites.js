@@ -16,6 +16,7 @@ export const SIZE = 1024
 export const charRect = i => [i % 32 * 32, (i / 32 | 0) * 42, 32, 42]
 export const glyph = ch => [(FONT.indexOf(ch) + 44) % 44 * 4, 432, 4, 7]   // unknown chars fall through to the blank
 export const SHIP = { merry: [0, 448, 64, 64], sunny: [64, 448, 64, 64] }
+export const DOT = [180, 432, 3, 3]   // one dot of the dotted route
 
 /* look = skin, hair colour, hair style, hat, hat colour, top, bottom, then extras
    hair: 0 bald 1 short 2 long 3 spiky 4 afro 5 pompadour 6 topknot
@@ -127,6 +128,7 @@ export function makeAtlas(cast) {
     R('#0b1830d0', 0, 0, 4, 7)
     ;[...b].forEach((d, r) => { for (let x = 0; x < 3; x++) if (d >> (2 - x) & 1) R('w', x, r + 1, 1, 1) })
   })
+  g.fillStyle = '#f5eed9'; g.fillRect(...DOT)
   drawDecals(g)
   return cv
 }

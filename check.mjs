@@ -4,7 +4,7 @@ import { ARCS, ISLANDS, CAST, CODES, TARAI, inArc, where, locate } from './data.
 const at = ch => CODES.indexOf(ch)
 import { PAL } from './sprites.js'
 
-assert(ISLANDS.length <= 60 && ARCS.filter(a => a.only).length + 1 <= 35, 'shader holds 60 islands and 35 route points')
+assert(ISLANDS.length <= 60, 'the shader holds 60 islands')
 assert.equal(ARCS.length, CODES.length)
 assert.equal(ARCS.findIndex(a => !a.past), at('0'), 'the past comes first')
 for (const a of ARCS) {
