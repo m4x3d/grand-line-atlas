@@ -20,10 +20,10 @@ jaya|Jaya|620|605|24|5fb845|3f9a3a|2a7535|c9503a|.08|0|A spring island whose law
 skypiea|Skypiea|690|545|30|ffffff|e6eef8|c9d8ec|f2c230|.03|1|A sky island on a sea of clouds 10,000 metres up. Its Upper Yard is the lost half of Jaya.
 longring|Long Ring Long Land|770|650|22|a5d63a|8fc43a|7ab035|ffffff|0|0|One long ring of land cut into ten islands by the sea, joined for a few hours a year at low tide.
 water7|Water 7|860|570|26|e8e2d0|d0c8b0|f5f5f0|ef7d21|.45|0|The city of water and of shipwrights, home of the Galley-La Company and the sea train.
-enies|Enies Lobby|960|680|20|f0f0ea|d8d8d0|ffffff|8a8f98|.3|0|The judicial island where night never falls, built over a bottomless waterfall. A Buster Call levels it.
+enies|Enies Lobby|982|690|20|f0f0ea|d8d8d0|ffffff|8a8f98|.3|0|The judicial island where night never falls, built over a bottomless waterfall. A Buster Call levels it.
 thriller|Thriller Bark|1020|525|26|5a4a6a|453a55|2f2840|7b4bb3|.1|0|The largest ship in the world, a drifting island from the West Blue lost in the fog of the Florian Triangle.
 sabaody|Sabaody Archipelago|1150|600|30|7fd08a|4fb86a|2f9a55|d8f5ff|.12|0|Seventy-nine giant mangroves at the foot of the Red Line, with soap bubbles, an amusement park and slave auctions.
-marineford|Marineford|1120|680|18|d8d8d0|b8bcc4|f5f5f0|2f6fd0|.35|0|Marine Headquarters until the Summit War, afterwards the G-1 branch.
+marineford|Marineford|1098|690|18|d8d8d0|b8bcc4|f5f5f0|2f6fd0|.35|0|Marine Headquarters until the Summit War, afterwards the G-1 branch.
 kuraigana|Kuraigana Island|300|500|18|5a5a6a|45454f|2f2f3a|8a8f98|.15|0|Ruins of the Shikkearu Kingdom, home of Mihawk.
 baltigo|Baltigo|430|500|16|f0f0ea|d8d8d0|c8c8c0|8a8f98|.1|0|Land of white soil, first headquarters of the Revolutionary Army.
 momoiro|Momoiro Island|560|500|18|f7c8d8|f28cb1|d86a9a|ffffff|.15|0|The Kamabakka Kingdom, later the Revolutionary Army's headquarters.
@@ -32,7 +32,7 @@ banaro|Banaro Island|800|560|14|c9a070|a87442|8a5a35|d8322c|.15|0|Where Blackbea
 karakuri|Karakuri Island|350|700|16|e8f0f8|c8d8ea|8a8f98|49c4d8|.15|0|Vegapunk's birthplace in the winter land of Baldimore.
 boin|Boin Archipelago|880|478|20|5fb845|d8322c|2a7535|f28cb1|.08|0|The Forest of Gluttony, an island that is one giant plant.
 namakura|Namakura Island|890|650|14|6a6a5a|55554a|3f3f35|8a5a35|.15|0|Harahettania, the land of poverty.
-impel|Impel Down|1040|775|14|8a8f98|6a6f78|555a66|1b1b22|.2|0|The great undersea prison in the Calm Belt, six levels deep and ringed by Sea Kings.
+impel|Impel Down|1040|767|14|8a8f98|6a6f78|555a66|1b1b22|.2|0|The great undersea prison in the Calm Belt, six levels deep and ringed by Sea Kings.
 amazon|Amazon Lily|860|770|22|4faa3f|2f8a35|8a8f98|d8322c|.1|0|The island of women in the Calm Belt, home of the Kuja and forbidden to men.
 rusukaina|Rusukaina|800|750|14|4faa3f|2f8a35|8a8f98|ffffff|0|0|An island of 48 seasons a year, Luffy's training ground.
 mary|Mary Geoise|1240|555|24|f5f0e0|e8dcc0|ffffff|f2c230|.3|0|The Holy Land on top of the Red Line, seat of the World Government and home of the Celestial Dragons.

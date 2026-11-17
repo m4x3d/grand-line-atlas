@@ -196,7 +196,7 @@ function frame(ms) {
   if (z < 1.1) for (const [name, x, y] of SEAS) text(name, x, y)
   const cur = ARCS[arc].isl
   for (const s of ISLANDS) if (z >= .75 || s === cur) text(s.name, s.x, s.y + s.ext + 3, 0, s === cur ? 1 : 0)
-  if (z >= .75) text('Tarai Current', TARAI[0], TARAI[1])
+  if (z >= .75) text('Tarai Current', TARAI[0], TARAI[1] - 12)   // above the island names on the ring
   const k = z >= 6 ? 2 : 1
   if (ship) push(ship.isl.x - ship.isl.ext - 5, ship.isl.y + ship.isl.r * .5, -32 * k, -58 * k, ship.rect, k, 0)
   const pins = ARCS[arc].wide && z < 1.6   // zoomed out on the timeskip: the scattered Straw Hats stay visible as named pins
