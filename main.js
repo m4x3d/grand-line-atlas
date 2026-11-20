@@ -1,12 +1,12 @@
-import { ARCS, ISLANDS, CAST, CODES, LAP, SAIL, TARAI, inArc, where, locate, known, setLimit, LIMIT } from './data.js'
-import { makeAtlas, charRect, glyph, SHIP, DOT, TRAIL } from './sprites.js'
+import { ARCS, ISLANDS, CAST, CODES, LAP, SAIL, TARAI, REALMS, STONES, inArc, where, locate, known, setLimit, LIMIT } from './data.js'
+import { makeAtlas, charRect, glyph, SHIP, DOT, TRAIL, SEA, REALM_DOT } from './sprites.js'
 import { DECAL } from './decals.js'
 import { initGPU, OFF } from './gpu.js'
 import { initGL } from './gl.js'
 
 const $ = s => document.querySelector(s)
 const cv = $('canvas'), panel = $('#panel'), card = $('#card'), when = $('#when')
-const atlas = makeAtlas(CAST)
+const atlas = makeAtlas(CAST, REALMS.map(r => r.col))
 const gpu = await initGPU(cv, atlas) ?? initGL(cv, atlas)   // WebGPU first, WebGL2 if there is no adapter
 if (!gpu) { $('#nogpu').hidden = false; throw new Error('no WebGPU or WebGL2') }
 document.documentElement.style.setProperty('--atlas', `url(${atlas.toDataURL()})`)
@@ -322,6 +322,7 @@ function setArc(i, fly = true) {
   document.body.classList.toggle('past', a.past)   // sepia map and timeline while in a flashback
   place()
   showArc()
+  if (!$('#layers').hidden) renderLayers()   // the legend follows the timeline
   // one leg further and the ship is aboard, from where it waited to where it is now: it sails while the camera shows the
   // whole leg, then lands. Not after a leg Luffy went alone (Rusukaina to Sabaody: the Sunny never left Sabaody) or one in NO_SAIL.
   voyage = sailedLegs === legs + 1 && !NO_SAIL.includes(arc) && was?.isl === STOPS[legs] && ship?.isl === STOPS[sailedLegs] ? { leg: legs, t0: performance.now(), ms: 1200 + LEN[legs] * 5, free: !fly } : null
@@ -333,12 +334,46 @@ function setArc(i, fly = true) {
 }
 
 // Sprite instances: world anchor, offset in sprite px, atlas rect, integer scale, hop phase (-1 = still), tint
-function push(wx, wy, ox, oy, rect, scale = 1, phase = -1, tint = 0) {
-  if (n < INST.length / 12) INST.set([near(wx), wy, ox, oy, ...rect, scale, 1, phase, tint], n++ * 12)
+function push(wx, wy, ox, oy, rect, scale = 1, phase = -1, tint = 0, alpha = 1) {
+  if (n < INST.length / 12) INST.set([near(wx), wy, ox, oy, ...rect, scale, alpha, phase, tint], n++ * 12)
 }
 function text(str, wx, wy, oy = 0, tint = 0) {
   const s = ` ${str.toUpperCase()} `
   ;[...s].forEach((ch, i) => push(wx, wy, i * 8 - s.length * 4, oy, glyph(ch), 2, -1, tint))
+}
+// Map layers, picked like on a web map: sea life, Emperor territories, poneglyphs and a highlight for some characters
+const LAYERS = { sea: true, realms: false, stones: false, mark: '' }
+try { Object.assign(LAYERS, JSON.parse(localStorage.getItem('layers'))) } catch {}
+const LOGIA = /^(Mera|Hie|Magu|Pika|Goro|Suna|Moku|Yami|Gasu|Yuki|Numa|Mori) /, ZOAN = /Model|^(Hito|Ushi|Tori|Inu|Neko|Hebi|Uo|Zo|Ryu|Kumo|Batto|Kame) /
+const side = c => c.crew.split(', later')[0]   // their side as of the stop, never a later one
+const MARK = {
+  logia: ['Logia users', c => LOGIA.test(c.fruit)],
+  paramecia: ['Paramecia users', c => / no Mi/.test(c.fruit) && c.fruit !== 'Akuma no Mi' && !ZOAN.test(c.fruit) && (!LOGIA.test(c.fruit) || / and /.test(c.fruit))],
+  zoan: ['Zoan users', c => ZOAN.test(c.fruit)],
+  crew: ['Straw Hats', c => c.join <= arc],
+  marines: ['Marines', c => /(?<!ex-)Marines/.test(side(c))],
+  gov: ['World Government', c => /World Government|CP9|CP0|Five Elders|World Noble|Holy Knights|Impel Down/.test(side(c))],
+  rev: ['Revolutionary Army', c => /Revolutionary/.test(side(c))],
+  emperors: ["Emperors' crews", c => /Whitebeard Pirates|Big Mom Pirates|Beasts Pirates|Red Hair Pirates|Blackbeard Pirates/.test(side(c))],
+  warlords: ['Warlords', c => /(?<!ex-)Warlord/.test(side(c))],
+}
+const marked = c => !LAYERS.mark || MARK[LAYERS.mark][1](c)
+const told = i => (+ARCS[i].ch.match(/-(\d+)/)?.[1] || ARCS[i].reveal) <= LIMIT   // the stop is read to its end
+const realmsNow = () => REALMS.map((r, k) => ({ ...r, k, land: r.land.filter(l => arc >= l.from && arc <= l.to && told(l.told) && seenIsl(l.isl)) })).filter(r => r.land.length)
+const stonesNow = () => STONES.filter(s => arc >= s.at && seenIsl(s.isl))
+const ico = ([x, y, w, h], k = 1) => `width:${w * k}px;height:${h * k}px;background:var(--atlas) -${x * k}px -${y * k}px / ${1024 * k}px`
+function renderLayers() {
+  const tile = (k, name, icon) => `<button class="tile" data-layer="${k}" aria-pressed="${LAYERS[k]}">${icon}${name}</button>`
+  const ring = `<i class="ring" style="background:conic-gradient(${REALMS.map((r, i) => `${r.col} ${i / REALMS.length * 100}% ${(i + 1) / REALMS.length * 100}%`)})"></i>`
+  const opt = ([k, [name]]) => `<option value="${k}"${k === LAYERS.mark ? ' selected' : ''}>${name}</option>`
+  const go = s => `<button class="link" data-isl="${s.id}">${s.name}</button>`
+  const realms = realmsNow(), stones = stonesNow(), road = STONES.filter(s => s.kind === 'Road' && arc >= s.at), copied = road.filter(s => arc >= s.copied)
+  $('#layers').innerHTML = `<h3>Map layers</h3><div class="tiles">${tile('sea', 'Sea life', `<i style="${ico(SEA.kings[0])}"></i>`)}${tile('realms', 'Emperors', ring)}${tile('stones', 'Poneglyphs', `<i style="${ico(SEA.road, 2)}"></i>`)}</div>
+    <h3>Highlight</h3><select id="mark" aria-label="Highlight characters"><option value="">nobody</option>
+      <optgroup label="Devil Fruit">${Object.entries(MARK).slice(0, 3).map(opt).join('')}</optgroup><optgroup label="Side">${Object.entries(MARK).slice(3).map(opt).join('')}</optgroup></select>
+    ${LAYERS.realms ? `<h3>Emperors now</h3>${realms.map(r => `<p><i class="sw" style="background:${r.col}"></i>${r.name}: ${r.land.map(l => go(l.isl)).join(', ')}</p>`).join('') || '<p class="dim">No Emperor holds an island on this map yet.</p>'}` : ''}
+    ${LAYERS.stones ? `<h3>Poneglyphs</h3>${stones.map(s => `<p><i style="${ico(s.kind === 'Road' ? SEA.road : SEA.stone)};display:inline-block;vertical-align:middle;margin-right:6px"></i>${go(s.isl)}: ${s.kind}</p>`).join('') || '<p class="dim">None found yet.</p>'}
+      ${road.length ? `<p class="note">Road Poneglyphs copied by Luffy's side: ${copied.length} of 4</p>` : ''}` : ''}`
 }
 const pick = () => hits.findLast(([x, y, w, h]) => mouse[0] >= x && mouse[0] < x + w && mouse[1] >= y && mouse[1] < y + h)?.[4] ?? null
 
@@ -375,6 +410,12 @@ function frame(ms) {
   if (sel && trail) for (const l of journey(sel)) if (l.arc <= arc) dots(l.pts, TRAIL, 0)
   // newest leg drawn only as far as the ship has sailed
   LEGS.slice(0, sailedLegs).forEach((pts, i) => dots(pts, DOT, i === sailedLegs - 1 ? 1 : 0, voyage?.leg === i ? e * LEN[i] : Infinity))
+  if (LAYERS.realms) for (const r of realmsNow()) for (const { isl } of r.land) {   // a dotted ring in the Emperor's colour
+    const R = isl.ext * 1.45 + 6, m = Math.max(12, Math.round(2 * Math.PI * R / gap))
+    for (let j = 0; j < m; j++) { const a = (j + drift / gap) / m * 2 * Math.PI; push(isl.x + Math.cos(a) * R, isl.y + Math.sin(a) * R, -1, -1, REALM_DOT(r.k)) }
+    if (z >= .75) { text(r.name, isl.x, isl.y - R, -16); push(isl.x, isl.y - R, -(r.name.length + 2) * 4 - 8, -14, REALM_DOT(r.k), 2) }
+  }
+  if (LAYERS.sea && z >= .45) sea(ms / 1000, z)
   if (z < 1.1) for (const [name, x, y] of SEAS) text(name, x, y)
   const cur = ARCS[arc].isl
   for (const s of ISLANDS) if (seenIsl(s) && (z >= .75 || s === cur)) text(s.name, s.x, s.y + s.ext + 3, 0, s === cur ? 1 : 0)
@@ -392,12 +433,19 @@ function frame(ms) {
     }
     push(x, y, -32 * k, -58 * k, east ? [ship.rect[0] + 128, ...ship.rect.slice(1)] : ship.rect, k, 0)
   }
+  const ks = clamp(Math.round(z / 1.5), 1, 3) + 1
+  if (LAYERS.stones) for (const { isl, kind } of stonesNow()) push(isl.x - isl.ext * .6, isl.y - isl.ext * .45, -5 * ks, -12 * ks, kind === 'Road' ? SEA.road : SEA.stone, ks)
+  if (LAYERS.mark && z < 1.6) {   // zoomed out: how many of the highlighted are on each island
+    const count = new Map()
+    for (const p of placed) if (marked(p.c)) count.set(p.isl, (count.get(p.isl) ?? 0) + 1)
+    for (const [isl, m] of count) text(String(m), isl.x, isl.y, -8, 1)
+  }
   const pins = ARCS[arc].wide && z < 1.6   // zoomed out on the timeskip: the scattered Straw Hats stay visible as named pins
   if (z >= 1.6 || pins) {
     for (const p of placed) {
       if (pins && !isCrewNow(p.c)) continue
       const s = sprScale(p.c)
-      push(p.x, p.y, -16 * s, -41 * s, charRect(p.c.id), s, p.c.id * .37 % 1, p === hover || p.c === sel ? 2 : 0)
+      push(p.x, p.y, -16 * s, -41 * s, charRect(p.c.id), s, p.c.id * .37 % 1, p === hover || p.c === sel ? 2 : 0, marked(p.c) || p === hover || p.c === sel ? 1 : .25)
       hits.push([sx(p.x) - 12 * s, sy(p.y) - 41 * s, 24 * s, 41 * s, p])
       if (pins && p !== hover) text(p.c.name.split(' ').pop(), p.x, p.y, -41 * s - 18)
     }
@@ -407,6 +455,29 @@ function frame(ms) {
   U.set([cam.x, cam.y, z, ms / 1000, W / 2, H / 2, ISLANDS.length])
   gpu.draw(n)
   requestAnimationFrame(frame)
+}
+
+// The living sea: Sea Kings surface in the Calm Belts, Laboon waits at Twin Cape, snow falls on Drum, lightning strikes
+// Weatheria and fog drifts round Thriller Bark (the Florian Triangle)
+const isl = id => ISLANDS.find(s => s.id === id)
+const KINGS = Array.from({ length: 16 }, (_, i) => [115 + i * 150, i % 2 ? 772 : 428])
+  .filter(([x, y]) => ISLANDS.every(s => Math.hypot(lap(x - s.x), y - s.y) > s.ext + 35))
+function sea(t, z) {
+  const k = clamp(Math.round(z / 1.5), 1, 4)   // creatures and weather grow with the zoom, so they keep their size next to the islands
+  KINGS.forEach(([x, y], i) => {
+    if (z < 1 && i % 4 > 1) return   // zoomed far out, half of them is plenty (still both belts)
+    const ph = t * .35 + i * 2.3, kind = (i + Math.floor(ph / Math.PI / 2)) % 3, up = Math.sin(ph)   // the kind changes while it is under water
+    if (up > .4) push(x, y, -20 * k, -24 * k, SEA.kings[kind], k, -1, 0, Math.min(1, (up - .4) * 5))
+  })
+  const [rev, drum, wea, th] = ['reverse', 'drum', 'weatheria', 'thriller'].map(isl)
+  if (seenIsl(rev)) push(rev.x + rev.ext + 16, rev.y + 22, -32 * k, -27 * k, SEA.laboon, k, .5)
+  if (seenIsl(drum)) for (let i = 0; i < 70; i++) {
+    const h = drum.ext * 3.4, y = (t * 6 + i * 37) % h - h / 2
+    push(drum.x + ((i * .618) % 1 - .5) * h + Math.sin(t + i) * 2, drum.y + y, 0, 0, SEA.flake, k + 1, -1, 0, .9)
+  }
+  const f = (t + 1.3) % 5
+  if (seenIsl(wea) && (f < .12 || f > .25 && f < .33)) push(wea.x + 5, wea.y - 3, -4 * k, -20 * k, SEA.bolt, k)
+  if (seenIsl(th)) for (let i = 0; i < 6; i++) push(th.x + Math.sin(t * .15 + i * 1.7) * th.ext * 1.3, th.y + (i / 5 - .5) * th.ext * 1.8, -24 * (k + 1), -9 * (k + 1), SEA.fog, k + 1, -1, 0, .35)
 }
 
 const toWorld = ([mx, my]) => [cam.x + (mx - W / 2) / cam.z / 2, cam.y + (my - H / 2) / cam.z / 2]
@@ -423,6 +494,7 @@ const pinch = () => {
 }
 cv.onpointerdown = e => {
   if (voyage) voyage.free = true
+  layersOpen(false)   // a tap on the map closes the layer picker, like on a web map
   touches.set(e.pointerId, [e.clientX, e.clientY])
   drag = { x: e.clientX, y: e.clientY, moved: touches.size > 1 ? 99 : 0 }   // a pinch is never a tap
   cv.setPointerCapture(e.pointerId)
@@ -482,6 +554,13 @@ panel.onclick = $('#marks').onclick = e => {
   else if (b.dataset.c) focusChar(CAST[b.dataset.c])
   else setArc(arc)   // "Back to …": the stop's card and its island again
 }
+const layersOpen = on => { $('#layers').hidden = !on; $('#layers-btn').ariaExpanded = on; if (on) renderLayers() }
+$('#layers-btn').onclick = () => layersOpen($('#layers').hidden)
+const saveLayers = () => { try { localStorage.setItem('layers', JSON.stringify(LAYERS)) } catch {} ; renderLayers() }
+$('#layers').onclick = e => {
+  const s = e.target.closest('[data-isl]'); if (s) return focusIsland(ISLANDS.find(i => i.id === s.dataset.isl))
+  const b = e.target.closest('[data-layer]'); if (b) { LAYERS[b.dataset.layer] = !LAYERS[b.dataset.layer]; saveLayers() } }
+$('#layers').onchange = e => { if (e.target.id === 'mark') { LAYERS.mark = e.target.value; saveLayers() } }
 $('#prev').onclick = () => { play(false); step(-1) }
 $('#next').onclick = () => { play(false); step(1) }
 // Play the story: one stop after another, waiting for the ship to land
@@ -512,6 +591,7 @@ $('#find').onchange = e => {
   if (hit) hit.look ? focusChar(hit) : focusIsland(hit)
 }
 onkeydown = e => {
+  if (e.key === 'Escape') layersOpen(false)
   if (e.target.matches('input')) return
   if (e.key === 'ArrowLeft') { play(false); step(-1) }
   if (e.key === 'ArrowRight') { play(false); step(1) }

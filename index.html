@@ -21,6 +21,22 @@
   #find:placeholder-shown { padding-right: 6px; }   /* no ✕ yet, so the placeholder gets the room */
   .wiki { color: #9fb4d6; font-size: 11px; } .wiki:hover { color: var(--gold); }
   #trail { accent-color: var(--gold); }
+  #layers-btn { top: 64px; left: 12px; display: flex; gap: 6px; align-items: center; padding: 4px 10px; font: inherit; color: var(--paper); cursor: pointer; }
+  #layers-btn:hover, #layers-btn[aria-expanded=true] { border-color: var(--gold); color: var(--gold); }
+  #layers-btn i { width: 12px; height: 12px; border: 2px solid currentColor; box-shadow: 3px -3px 0 -1px currentColor; }
+  #layers { top: 102px; left: 12px; width: 280px; max-height: calc(100vh - 190px); padding: 4px 12px 10px; overflow-y: auto; }
+  #layers p { margin: 4px 0; }
+  .tiles { display: flex; gap: 6px; }
+  .tile { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-height: 64px; padding: 6px 2px;
+    font: inherit; font-size: 11px; color: var(--paper); background: #132a4f; border: 2px solid var(--line); cursor: pointer; }
+  .tile:hover { border-color: #9fb4d6; }
+  .tile[aria-pressed=true] { border-color: var(--gold); color: var(--gold); }
+  .tile i { display: block; image-rendering: pixelated; }
+  .tile .ring { width: 26px; height: 26px; border-radius: 50%; -webkit-mask: radial-gradient(circle, #0000 7px, #000 8px); mask: radial-gradient(circle, #0000 7px, #000 8px); }
+  .sw { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border: 1px solid #0008; }
+  .link { padding: 0; font: inherit; color: inherit; background: none; border: 0; text-decoration: underline dotted; cursor: pointer; }
+  .link:hover { color: var(--gold); }
+  #mark { width: 100%; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); padding: 2px; }
   footer { left: 12px; right: 12px; bottom: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center; }
   footer button, .chip { font: inherit; color: var(--paper); background: #132a4f; border: 2px solid var(--line); padding: 2px 8px; cursor: pointer; }
   footer button:hover, .chip:hover, .who:hover { border-color: var(--gold); color: var(--gold); }
@@ -43,7 +59,7 @@
   #arc b { color: var(--gold); }
   aside { top: 12px; right: 12px; bottom: 76px; width: 310px; padding: 12px; overflow-y: auto; }
   aside h2 { margin: 0 0 2px; font-size: 16px; color: var(--gold); }
-  aside h3 { margin: 14px 0 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9fb4d6; }
+  aside h3, #layers h3 { margin: 14px 0 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9fb4d6; }
   aside p { margin: 6px 0; }
   #upto-arc { max-width: 100%; margin: 2px 0 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); }
   #upto { width: 6em; margin-left: 6px; font: inherit; color: var(--paper); background: #06101f; border: 2px solid var(--line); padding: 2px 4px; }
@@ -68,6 +84,7 @@
     header input[type=search] { flex: 1; min-width: 0; width: auto; }
     h1 { font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
     aside.min { bottom: 124px; }
+    #layers { max-height: calc(100vh - 124px - 38vh - 116px); }   /* between the search and the card */
     #fold { width: 32px; height: 32px; }   /* a finger-sized target */
     footer { flex-wrap: wrap; }   /* timeline on its own row under the buttons and the arc name */
     #arc { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -83,6 +100,8 @@
   <button id="clear" aria-label="Clear search">✕</button>
   <datalist id="names"></datalist>
 </header>
+<button class="box" id="layers-btn" aria-expanded="false" aria-controls="layers"><i></i>Layers</button>
+<div class="box" id="layers" hidden></div>
 <aside class="box" id="card"><button id="fold" aria-label="Shrink the info card" aria-expanded="true">–</button><div id="panel" aria-live="polite"></div></aside>
 <footer class="box">
   <button id="prev" aria-label="Previous arc">&lt;</button>

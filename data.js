@@ -120,3 +120,27 @@ export function locate(c, now) {
   const isl = prev < 0 ? null : home || where(c, prev)
   return { prev, next, dead, home: !!home, isl, shown: prev >= 0 && !dead && !(now >= SAIL && prev < SAIL) && (!stale || home) }   // flashbacks do not carry into the voyage
 }
+
+// Emperor territories on the map: name, ring colour, then island:from-to:told per entry, as stop codes. 'told' is the stop
+// that reveals the claim to the reader (the spoiler guard waits until that stop is read to its end).
+// ponytail: from memory, not wiki-checked; only islands on this map, so most of the New World stays blank
+export const REALMS = rows(`
+Whitebeard|#4fc3f7|sphinx:gl:g fishman:gl:o
+Big Mom|#ff8fd8|wholecake:ou:o fishman:ou:o
+Kaido|#9b6bff|wano:qu:r
+Blackbeard|#b0b0b8|hachinosu:uw:u
+Buggy|#ffa040|karaibari:vw:v
+Monkey D. Luffy|#ffe066|wano:vw:v fishman:vw:v
+Shanks|#ff4a3d|gartel:ww:w
+`).map(([name, col, land]) => ({ name, col, land: land.split(' ').map(e => e.split(':')).map(([id, [a, b], t]) =>
+  ({ isl: island(id), from: CODES.indexOf(a), to: CODES.indexOf(b), told: CODES.indexOf(t) })) }))
+
+// Poneglyphs the story shows: island, kind, stop where they appear, stop where Luffy's side copies a Road Poneglyph
+export const STONES = rows(`
+alabasta|Historical|a|
+skypiea|Historical, with Roger's message|c|
+fishman|Joy Boy's apology|o|
+zou|Road|r|r
+wholecake|Road|s|s
+wano|Road|u|u
+`).map(([id, kind, at, copied]) => ({ isl: island(id), kind, at: CODES.indexOf(at), copied: copied ? CODES.indexOf(copied) : Infinity }))

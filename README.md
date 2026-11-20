@@ -23,6 +23,7 @@ Opening `index.html` straight from disk does not work, because browsers block ES
 - **Links** keep the stop and the selection, for example `#q/roronoa-zoro` opens Zoro at Dressrosa.
 - **Islands** show a description, every stop that involves them and who is there now. The stops also appear as ticks above the timeline.
 - **Search** finds characters and islands.
+- **Layers** (top left, picked like on a web map): sea life (Sea Kings in the Calm Belts, Laboon at Twin Cape, snow on Drum, lightning over Weatheria, fog round Thriller Bark), Emperor territories as they change over the timeline, poneglyphs with a tracker of the Road Poneglyphs Luffy's side has copied, and a highlight for Devil Fruit types or sides such as the Marines or the Revolutionary Army.
 - The dotted line is Luffy's route so far. The Going Merry or Thousand Sunny waits at the crew's current island and sails each new leg as you step forward. ▶ plays the story stop by stop.
 
 Controls: drag to pan, scroll to zoom, arrow keys to step through the timeline.

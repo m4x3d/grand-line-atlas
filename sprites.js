@@ -17,6 +17,10 @@ export const charRect = i => [i % 32 * 32, (i / 32 | 0) * 42, 32, 42]
 export const glyph = ch => [(FONT.indexOf(ch) + 44) % 44 * 4, 432, 4, 7]   // unknown chars fall through to the blank
 export const SHIP = { merry: [0, 448, 64, 64], sunny: [64, 448, 64, 64] }   // bow west; 128 px to the right, the same ships mirrored
 export const DOT = [180, 432, 3, 3], TRAIL = [184, 432, 3, 3]   // one dot of the route, one of a character's journey
+// the map layers: sea life, poneglyphs and one ring dot per Emperor colour (index as in REALMS)
+export const SEA = { kings: [[0, 640, 40, 28], [244, 640, 40, 28], [288, 640, 40, 28]], laboon: [48, 640, 64, 30], road: [120, 640, 10, 12], stone: [132, 640, 10, 12],
+  bolt: [144, 640, 9, 20], flake: [156, 640, 2, 2], fog: [160, 640, 48, 18] }
+export const REALM_DOT = i => [212 + i * 4, 640, 3, 3]
 
 /* look = skin, hair colour, hair style, hat, hat colour, top, bottom, then extras
    hair: 0 bald 1 short 2 long 3 spiky 4 afro 5 pompadour 6 topknot
@@ -104,6 +108,42 @@ function ship(R, sunny) {
   }
 }
 
+// Sea Kings rearing out of the water, head to the left: a green serpent, a toothy blue fish and a horned orange eel
+function seaKing(R, kind) {
+  const [b, belly, fin] = [['#3f8f6a', '#c9d98a', '#d8322c'], ['#3d5fa8', '#9fc4e8', '#f2c230'], ['#d9772b', '#f5d39a', '#7a3a8f']][kind], foam = '#cfe8ff'
+  R(b, 23, 17, 6, 5); R(b, 22, 19, 8, 3); R(b, 32, 19, 5, 3); R(b, 31, 20, 7, 2); R(fin, 24, 15, 2, 2)   // humps
+  R(b, 12, 9, 6, 13); R(belly, 12, 12, 2, 10); R(fin, 18, 9, 2, 3); R(fin, 18, 14, 2, 3)              // neck
+  if (kind === 0) {
+    R(b, 4, 3, 14, 7); R(b, 2, 5, 4, 4); R(b, 3, 9, 10, 2); R('k', 3, 8, 8, 1); R('w', 4, 9, 1, 1); R('w', 7, 9, 1, 1)
+    R('y', 12, 4, 2, 2); R('k', 13, 4, 1, 2); R(fin, 9, 1, 2, 2); R(fin, 13, 1, 2, 2); R(fin, 16, 2, 2, 2)
+  } else if (kind === 1) {   // a big round fish head, jaws wide open
+    R(b, 5, 0, 13, 6); R(b, 3, 2, 15, 3); R(b, 6, 9, 12, 5); R(belly, 7, 11, 8, 2); R('#7a1f2a', 3, 6, 15, 3)
+    for (let x = 4; x < 16; x += 3) { R('w', x, 5, 1, 2); R('w', x + 1, 8, 1, 1) }
+    R('y', 12, 1, 3, 3); R('k', 13, 2, 1, 1); R(fin, 10, -1, 6, 1)
+  } else {                   // a long snout with whiskers and two horns
+    R(b, 0, 5, 18, 4); R(b, 8, 2, 10, 4); R(belly, 1, 8, 14, 1); R('k', 0, 5, 1, 1)
+    R('w', 13, 3, 2, 2); R('k', 13, 3, 1, 1); R(fin, 16, 0, 2, 2); R(fin, 11, 0, 2, 2)
+    R('Y', 1, 9, 1, 2); R('Y', 2, 11, 3, 1); R('Y', 4, 4, 3, 1)
+  }
+  R(foam, 9, 22, 12, 1); R(foam, 21, 22, 18, 1); R('w', 11, 23, 8, 1)
+}
+// Laboon at Twin Cape, seen from the side: grey and scarred (the Jolly Roger is on his front, so it doesn't show)
+function laboon(R) {
+  const b = '#6f7f99', dark = '#55617a'
+  R(b, 14, 4, 30, 2); R(b, 8, 6, 44, 18); R(b, 4, 9, 52, 13); R(b, 2, 12, 56, 7)
+  R(b, 54, 11, 4, 5); R(b, 56, 4, 4, 8); R(b, 58, 2, 3, 5); R(b, 56, 15, 4, 6)   // tail
+  R('#c7ced8', 4, 18, 40, 3); R('#c7ced8', 8, 21, 32, 2); R('#3a4458', 2, 16, 14, 1)
+  R('w', 13, 11, 3, 3); R('k', 13, 12, 2, 2)
+  R(dark, 22, 7, 1, 6); R(dark, 26, 6, 1, 5); R(dark, 20, 9, 8, 1)   // scars from the Red Line
+  R(dark, 36, 8, 1, 6); R(dark, 40, 9, 1, 5); R(dark, 33, 10, 6, 1)
+  R('#cfe8ff', 0, 25, 60, 1); R('w', 6, 26, 20, 1); R('#cfe8ff', 30, 26, 24, 1)
+}
+// A poneglyph: a stone cube covered in glyphs
+function stone(R, face) {
+  R(face, 1, 0, 7, 2); R('#fff4', 1, 0, 7, 2); R(face, 0, 2, 8, 8); R('#0004', 6, 2, 2, 8)
+  for (const [x, y, w] of [[1, 4, 4], [2, 6, 3], [1, 8, 4]]) R('#0007', x, y, w, 1)
+}
+
 // One dark pixel around every solid shape, the classic sprite outline.
 function outline(g, h) {
   const im = g.getImageData(0, 0, SIZE, h), d = im.data, solid = new Uint8Array(SIZE * h)
@@ -114,7 +154,7 @@ function outline(g, h) {
   g.putImageData(im, 0, 0)
 }
 
-export function makeAtlas(cast) {
+export function makeAtlas(cast, REALM_COLS) {
   const cv = Object.assign(document.createElement('canvas'), { width: SIZE, height: SIZE })
   const g = cv.getContext('2d', { willReadFrequently: true })
   let ox = 0, oy = 0
@@ -122,7 +162,10 @@ export function makeAtlas(cast) {
   cast.forEach((c, i) => { [ox, oy] = charRect(i); oy++; person(R, c.look) })
   ;[ox, oy] = SHIP.merry; ox++; ship(R, false)   // one pixel in, so the outline stays inside the cell
   ;[ox, oy] = SHIP.sunny; ox++; ship(R, true)
-  outline(g, 512)
+  SEA.kings.forEach(([x, y], i) => { ox = x + 1; oy = y + 2; seaKing(R, i) })   // y + 2: the fish's fin pokes up one row
+  ;[ox, oy] = SEA.laboon; ox++; oy++; laboon(R)
+  for (const [k, face] of [['road', '#b8323a'], ['stone', '#4a5a70']]) { [ox, oy] = SEA[k]; ox++; oy++; stone(R, face) }
+  outline(g, 680)
   g.save(); g.scale(-1, 1)   // mirrored ships, bow east, each one 128 px to the right of the original
   for (const [x] of Object.values(SHIP)) g.drawImage(cv, x, 448, 64, 64, -(x + 192), 448, 64, 64)
   g.restore()
@@ -132,6 +175,16 @@ export function makeAtlas(cast) {
     ;[...b].forEach((d, r) => { for (let x = 0; x < 3; x++) if (d >> (2 - x) & 1) R('w', x, r + 1, 1, 1) })
   })
   g.fillStyle = '#f5eed9'; g.fillRect(...DOT); g.fillStyle = '#ff6f91'; g.fillRect(...TRAIL)
+  ;[ox, oy] = SEA.bolt
+  for (const [x, y, w, h] of [[5, 0, 3, 2], [4, 2, 3, 3], [3, 5, 3, 3], [2, 8, 6, 2], [5, 10, 3, 3], [4, 13, 3, 3], [3, 16, 2, 4]]) R('#fff6b0', x, y, w, h)
+  R('#f2c230', 3, 9, 4, 1)
+  ;[ox, oy] = SEA.flake; R('#ffffff', 0, 0, 2, 2)
+  ;[ox, oy] = SEA.fog   // a soft puff: solid core, dithered rim
+  for (let y = 0; y < 18; y++) for (let x = 0; x < 48; x++) {
+    const d = ((x - 23.5) / 24) ** 2 + ((y - 8.5) / 9) ** 2
+    if (d < .45 || d < 1 && (x + y) % 2 === 0 && d < .8 + (x * 7 % 5) / 25) R('#dfe6ee', x, y, 1, 1)
+  }
+  REALM_COLS.forEach((c, i) => { g.fillStyle = c; g.fillRect(...REALM_DOT(i)) })
   drawDecals(g)
   return cv
 }

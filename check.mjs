@@ -1,6 +1,6 @@
 // node check.mjs - fails if the hand-written data tables are inconsistent
 import assert from 'node:assert/strict'
-import { ARCS, ISLANDS, CAST, CODES, TARAI, inArc, where, locate } from './data.js'
+import { ARCS, ISLANDS, CAST, CODES, TARAI, REALMS, STONES, inArc, where, locate } from './data.js'
 const at = ch => CODES.indexOf(ch)
 import { PAL } from './sprites.js'
 
@@ -45,4 +45,8 @@ assert(!locate(CAST.find(c => c.name === 'Shanks'), at('0')).shown, 'flashback p
 const on = (name, ch) => { const l = locate(CAST.find(c => c.name === name), at(ch)); return l.shown ? l.isl.id : null }
 assert.deepEqual([on('Neptune', 't'), on('Neptune', 'w'), on('Morgan', 'w'), on('Rob Lucci', 'w'), on('Vista', 'x')],
   ['mary', 'fishman', null, null, null])   // home after the saga, gone after the saga, gone right after '-', gone after the timeskip
+for (const r of REALMS) for (const l of r.land) assert(l.from >= 0 && l.from <= l.to && l.told >= 0, `${r.name}: bad stops for ${l.isl.name}`)
+for (const a of REALMS) for (const b of REALMS) for (const l of a.land) for (const m of b.land)   // one Emperor per island at a time
+  assert(l === m || l.isl !== m.isl || l.to < m.from || m.to < l.from, `${l.isl.name} held by ${a.name} and ${b.name} at once`)
+assert(STONES.every(s => s.at >= 0) && STONES.filter(s => s.kind === 'Road').length <= 4, 'poneglyphs')
 console.log(`ok: ${CAST.length} characters, ${ARCS.length} arcs, ${ISLANDS.length} islands`)
